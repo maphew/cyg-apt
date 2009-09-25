@@ -1,0 +1,49 @@
+Changelog
+--------------------------------------------------------------------------------
+
+Changes apply to trailing revision version: FooVersion has Foo change:
+
+Foo change
+FooVersion
+--------------------------------------------------------------------------------
+Changes for cyg-apt script
+
+Incorrect file
+Revision 1
+----------
+
+Revision 2
+----------
+
+* Added original 2006 version cyg-apt by Jan Nieuwenhuizen from http://lilypond.org/~janneke/software/cyg-apt
+
+Revision 3
+* Changed tabs to spaces: tabs were confusing Python and causing spurious indentation complains.
+
+* Import pdb for debugging
+* Change the hardcoded mirror and cache locations
+official_mirror = 'http://gnu.kookel.org/ftp/cygwin'
+cache = ROOT + '/var/cache/setup' 
+becomes
+official_mirror = 'http://mirror.internode.on.net/pub/cygwin/'
+cache = ROOT + '/e/home/application_data/cygwin' 
+
+* Fix indentation of a line in options parsing in the script lines outside any function at the top.
+        cache = a
+
+* in get_requires(): only look for dependencies in [curr], not in distname which is the selected version of the selected package. My thinking is that those wanting the previous or testing versions of a package probably don't want previous or testing versions of the projects it depends on: there's no gurantee that there is any synchronisation of current-previous-test between packages, or that a previous version or a testing version of dependency exists.
+
+* in get_filelist (): split the decompression of the filelist file into two lines for easier debugging.
+
+* in find () : removed prepending ROOT to the file to search for. ROOT doesn't seem to be a general cygwin concept and I would like to remove it. 
+
+* Changed find () to silently ignore /setup/foo.lst files (containsing installed files for package 'foo') that we would expect to exist from installled.db but aren't actually there. At least with my install some packages were not correctly installed and this file doesn't exist. We should probably warn about these files rather than silently ignore.
+
+Revision 4
+----------
+
+
+
+
+
+

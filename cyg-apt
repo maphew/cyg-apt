@@ -39,6 +39,7 @@ import re
 import shutil
 import string
 import sys
+import pdb
 
 try:
     import urllib
@@ -77,7 +78,6 @@ target = 'cygwin'
 if basename[:3] == 'min':
     target = 'mingw'
 
-
 HOME = os.environ['HOME']
 CWD = os.getcwd ()
 MKNETREL = CWD
@@ -113,20 +113,21 @@ INSTALL = 'install'
 installed_db_magic = 'INSTALLED.DB 2\n'
 distname = 'curr'
 local_mirror = 'file://' + NETREL + '/uploads/..'
-official_mirror = 'http://mirrors.rcn.net/pub/sourceware/cygwin'
-official_mirror = 'http://gnu.kookel.org/ftp/cygwin'
+#official_mirror = 'http://mirrors.rcn.net/pub/sourceware/cygwin'
+official_mirror = 'http://mirror.internode.on.net/pub/cygwin/'
 if target == 'mingw':
     official_mirror = 'http://lilypond.org/mingw'
 mirror = local_mirror
 #if not os.path.exists (local_mirror[7:]):
-if not os.path.exists (local_mirror[7:] + "/setup.ini"):
-    mirror = official_mirror
+#if not os.path.exists (local_mirror[7:] + "/setup.ini"):
+#   mirror = official_mirror
 
-cache = ROOT + '/var/cache/setup' 
+cache = ROOT + '/e/home/application_data/cygwin' 
 downloads = cache + '/' + urllib.quote (mirror, '').lower ()
 
 rc_options = ['ROOT', 'MKNETREL', 'NETREL', 'mirror', 'cache', 'setup_ini', 'distname']
 h = 0
+
 if os.path.exists (cwd_cyg_apt_rc):
     h = open (cwd_cyg_apt_rc)
 elif os.path.exists (home_cyg_apt_rc):
@@ -139,6 +140,7 @@ if h:
     h.close ()
 
 config = ROOT + '/etc/setup'
+
 downloads = cache + '/' + urllib.quote (mirror, '').lower ()
 installed_db = config + '/installed.db'
 
@@ -171,6 +173,7 @@ Options:
                   ('cache=', 'download', 'help', 'mirror=',
                    'root=', 'ini=', 'dist=', 'no-deps'))
 
+
 command = 'help'
 if len (files) > 0:
     command = files[0]
@@ -189,7 +192,7 @@ for i in options:
     if 0:
         pass
     elif o == '--cache' or o == '-c':
-            cache = a
+        cache = a
         downloads = cache + '/' + urllib.quote (mirror, '').lower ()
     elif o == '--download' or o == '-d':
             download_p = 1
@@ -370,13 +373,16 @@ def download ():
     do_download ()
     ball ()
     md5 ()
-    print
+    print ""
     
+        
 def no_package (s='error'):
-    sys.stderr.write ("%s: %s not in [%s]\n" % (s, packagename, distname))
+    sys.stderr.write \
+    ("%s: %s not in [%s]\n" % (s, packagename, distname))
 
-def get_requires ():
-    dist = dists[distname]
+def get_requires():
+    # Looking for dependencies on curr not prev or test
+    dist = dists["curr"]
     if not dists[distname].has_key (packagename):
         no_package ('error')
         #return []
@@ -467,6 +473,7 @@ def filelist ():
 
 def update ():
     '''setup.ini'''
+
     if not os.path.exists (downloads):
         os.makedirs (downloads)
     os.system ('rm -f "%s/%s"' % (downloads, 'setup.ini'))
@@ -634,6 +641,7 @@ def do_install ():
     ball = get_ball ()
     # untar capture list
     # tarfile
+
     pipe = os.popen ('tar -C "%s" -xjvf "%s"' % (ROOT, ball), 'r')
     lst = map (string.strip, pipe.readlines ())
     if pipe.close ():
@@ -647,7 +655,8 @@ def do_install ():
     write_installed ()
 
 def get_filelist ():
-    pipe = os.popen ('gzip -dc "%s/%s.lst.gz"' % (config, packagename), 'r')
+    filelist_file = "%s/%s.lst.gz" % (config, packagename)
+    pipe = os.popen ('gzip -dc ' + filelist_file, 'r')
     lst = map (string.strip, pipe.readlines ())
     if pipe.close ():
         raise 'urg'
@@ -689,6 +698,7 @@ def do_uninstall ():
 
     # remove empty dirs?
     # cleanup
+
     write_filelist ([])
     # update installed[]
     del (installed[0][packagename])
@@ -696,6 +706,7 @@ def do_uninstall ():
 
 def remove ():
     '''uninstall packages'''
+
     global packagename
     for packagename in files[1:]:
         if not installed[0].has_key (packagename):
@@ -873,11 +884,15 @@ def source ():
 def find ():
     '''package containing file'''
     global packagename
-    regexp = re.sub ('^%s/' % ROOT, '/', packagename)
+    file_to_find = packagename
     hits = []
     for packagename in psort (installed[0].keys ()):
-        for i in get_filelist ():
-            if re.search (regexp, '/%s' % i):
+        filenames_file = "%s/%s.lst.gz" % (config, packagename)
+        if not os.path.exists(filenames_file):
+            continue
+        files = get_filelist()
+        for i in files:
+            if re.search (file_to_find, '/%s' % i):
                 hits.append ('%s: /%s' % (packagename, i))
     print (string.join (hits, '\n'))
 
@@ -899,6 +914,7 @@ for i in (installed_db, setup_ini):
     
 get_setup_ini ()
 get_installed ()
+
 
 if command and command in __main__.__dict__:
     __main__.__dict__[command] ()
