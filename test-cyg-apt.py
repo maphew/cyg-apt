@@ -1,3 +1,4 @@
+#!/bin/python
 import unittest
 import pdb
 import os
@@ -55,13 +56,12 @@ class TestCygApt(unittest.TestCase):
             print sys.argv[0] + ": " + options.tarfile +\
             " is not a tarfile."    
             
-        # Next confirm that the filelist file is present
-        # Problematic! Not sure if this file should be here or not.
-        # Doubly problematic: if the package has never been on the 
-        # system this file won't be here.
+        # Next confirm that the filelist file is gone
+        # Not the original cyg-apt behaviour but setup.exe removes
+        # this file, so that's taken as correct behaviour.
         # pdb.set_trace()
-        # f = "/etc/setup/" + package + ".lst.gz"
-        # self.assert_(os.path.exists(f) is True)
+        f = "/etc/setup/" + package + ".lst.gz"
+        self.assert_(os.path.exists(f) is False)
 
         # Confirm the package is not represented in installed.db
         installed_db = file("/etc/setup/installed.db").readlines()
@@ -72,7 +72,6 @@ class TestCygApt(unittest.TestCase):
     def confirm_installed(self, package):
         """ Confirms that a package is installed: the tarball files are 
         present, the package is represented in installed.db, if a postinstall script is present it's in the .done form, the filelist file exists and is correct."""
-        pdb.set_trace()
         tarfile_name = "/e/home/application_data/cygwin/http%3a%2f%2fmirror.internode.on.net%2fpub%2fcygwin%2f/release/joe/joe-3.5-2.tar.bz2"
         self.tar_do(tarfile_name, self.assert_file_exists)
         

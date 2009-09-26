@@ -677,6 +677,14 @@ def write_filelist (lst):
         os.system ('gzip -f "%s"' % lst_name)
     os.system ('touch -r %s %s.gz' % (setup_ini, lst_name))
 
+def remove_filelist():
+    lst_name = '%s/%s.lst.gz' % (config, packagename)
+    if os.path.exists(lst_name):
+         os.remove(lst_name)
+    else:
+        sys.stderr.write ('%S: warning %s no such file\n' % \
+             (sys.argv[0], lst_name))
+             
 def do_uninstall ():
     try_run_script (ROOT + '/etc/preremove/%s.sh' % packagename)
     postremove = ROOT + '/etc/postremove/%s.sh' % packagename
@@ -699,7 +707,10 @@ def do_uninstall ():
     # remove empty dirs?
     # cleanup
 
-    write_filelist ([])
+    # setup.exe removes the filelist when a package is uninstalled
+    # write_filelist ([])
+    remove_filelist()
+    
     # update installed[]
     del (installed[0][packagename])
     write_installed ()
