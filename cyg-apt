@@ -687,20 +687,35 @@ def remove_filelist():
         sys.stderr.write ('%S: warning %s no such file\n' % \
              (sys.argv[0], lst_name))
              
+def uninstall_want_file_removed(file, postremove, nowarns):
+    """
+    Returns true if the path from the tarball should result in a file removal operation, false if not.
+    """
+    if not os.path.exists (file) and not os.path.islink (file):
+        if file not in nowarns:
+            sys.stderr.write ('warning: %s no such file\n' % file)
+        return False
+    elif not os.path.isdir (file) and file != postremove:
+        return True
+             
 def do_uninstall ():
-    try_run_script (ROOT + '/etc/preremove/%s.sh' % packagename)
+    try_run_script (ROOT + '/etc/preremove/%s.sh' % packagename)    
     postremove = ROOT + '/etc/postremove/%s.sh' % packagename
     # get file list
     lst = get_filelist ()
+    
+    # We don't expect these to be present: they are executed 
+    # and moved to $(packagename).sh.done
+    nowarns = []
+    nowarns.append(ROOT + "/etc/postinstall/" + packagename + ".sh")
+    nowarns.append(ROOT + "/etc/preremove/" + packagename + ".sh")
+    
     # remove files
     for i in lst:
         file = os.path.join (ROOT, i)
-        if not os.path.exists (file) and not os.path.islink (file):
-            sys.stderr.write ('warning: %s no such file\n' % file)
-        elif not os.path.isdir (file) and file != postremove:
+        if (uninstall_want_file_removed(file, postremove, nowarns)):
             if os.remove (file):
                 raise 'urg'
-
     try_run_script (postremove)
     if os.path.isfile (postremove):
         if os.remove (postremove):
