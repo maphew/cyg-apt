@@ -50,8 +50,8 @@ Added uninstall tests to test-cyg-apt.py and aimed both install and uninstall te
 Added mini_mirror:
 Mini mirror builds a Cywin package from scratch and installs it to a remote server. See mini_mirror/README
 
-Revision 9
-----------
+Revision 10
+-----------
 
 
 
