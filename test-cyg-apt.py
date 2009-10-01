@@ -18,7 +18,7 @@ class TestCygApt(unittest.TestCase):
         self.post_remove_script = "/etc/postremove/testpkg.sh"
         self.pre_remove_script_done = "/etc/preremove/testpkg.sh.done"
         self.post_remove_script_done = "/etc/postremove/testpkg.sh.done"
-        self.tarfile = "mini_mirror/testpkg/build/release-2/testpkg/testpkg-0.0.1-0.tar.bz"
+        self.tarfile = "mini_mirror/testpkg/build/release-2/testpkg/testpkg-0.0.1-0.tar.bz2"
 
     def testinstall_remove(self):
         os.system("cyg-apt remove " + self.package_name);

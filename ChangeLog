@@ -53,6 +53,16 @@ Mini mirror builds a Cywin package from scratch and installs it to a remote serv
 Revision 10
 -----------
 
+cyg-apt: Fixed bogus warnings about missing postinstall and pre
+remove scripts during do_install.
+
+Fixed mini_mirror using .bz extension not .bz2, added exclusion of .svn directories when taring up the mini_mirror package build.
+
+
+Revision 12
+-----------
+
+
 
 
 
