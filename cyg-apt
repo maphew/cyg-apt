@@ -100,7 +100,7 @@ if cygwin_p:
             os.makedirs (ROOT)
 
 config = ROOT + '/etc/setup'
-setup_ini = config + '/setup.ini'
+setup_ini = config + '/setup-2.ini'
 
 EXTRA = MKNETREL + '/extra'
 PATCH = MKNETREL + '/patch'
@@ -119,10 +119,11 @@ if target == 'mingw':
     official_mirror = 'http://lilypond.org/mingw'
 mirror = local_mirror
 #if not os.path.exists (local_mirror[7:]):
-#if not os.path.exists (local_mirror[7:] + "/setup.ini"):
+#if not os.path.exists (local_mirror[7:] + "/setup-2.ini"):
 #   mirror = official_mirror
 
-cache = ROOT + '/e/home/application_data/cygwin' 
+
+cache = ROOT + '/e/home/application_data/cygwin_1_7' 
 downloads = cache + '/' + urllib.quote (mirror, '').lower ()
 
 rc_options = ['ROOT', 'MKNETREL', 'NETREL', 'mirror', 'cache', 'setup_ini', 'distname']
@@ -160,7 +161,7 @@ Options:
     -c,--cache=DIR         download cache [%(cache)s]
     -d,--download          download only
     -h,--help              show brief usage
-    -i,--ini=FILE          use setup.ini [%(setup_ini)s]
+    -i,--ini=FILE          use setup-2.ini [%(setup_ini)s]
     -m,--mirror=URL        use mirror [%(mirror)s]
     -n,--netrel=DIR        set netrel dir [%(NETREL)s]
     -r,--root=DIR          set %(target)s root [%(ROOT)s]
@@ -207,7 +208,7 @@ for i in options:
         ROOT = a
         config = ROOT + '/etc/setup'
         cache = ROOT + '/var/cache/setup'
-        setup_ini = config + '/setup.ini'
+        setup_ini = config + '/setup-2.ini'
         installed_db = config + '/installed.db'
         downloads = cache + '/' + urllib.quote (mirror, '').lower ()
     elif o == '--dist' or o == '-t':
@@ -472,15 +473,15 @@ def filelist ():
     print string.join (get_filelist (), '\n')
 
 def update ():
-    '''setup.ini'''
+    '''setup-2.ini'''
 
     if not os.path.exists (downloads):
         os.makedirs (downloads)
-    os.system ('rm -f "%s/%s"' % (downloads, 'setup.ini'))
-    uri_get (downloads, '%s/%s' % (mirror, 'setup.ini'))
+    os.system ('rm -f "%s/%s"' % (downloads, 'setup-2.ini'))
+    uri_get (downloads, '%s/%s' % (mirror, 'setup-2.ini'))
     if os.path.exists (setup_ini):
-        os.system ('cd %s && mv -f setup.ini setup.ini~' % config)
-    os.system ('cp -pf "%s/setup.ini" "%s"' % (downloads, config))
+        os.system ('cd %s && mv -f setup-2.ini setup-2.ini~' % config)
+    os.system ('cp -pf "%s/setup-2.ini" "%s"' % (downloads, config))
 
 def get_version ():
     if not dists[distname].has_key (packagename) \
@@ -557,7 +558,8 @@ def md5 ():
 def search ():
     '''search package list'''
     global packagename
-    regexp = packagename
+    # TODO fix regex searches
+    regexp = re.escape(packagename)
     packages = []
     keys = []
     if distname in dists:
