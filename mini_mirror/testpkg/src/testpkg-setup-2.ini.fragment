@@ -1,0 +1,10 @@
+@ testpkg
+sdesc: "is a test package"
+ldesc: "testpkg is a test package"
+
+This is a test package for testing apt-cyg
+category: Utils
+requires:
+version: 0.0.1-0
+install: release-2/testpkg/testpkg-0.0.1-0.tar.bz 3140 72e795df0a1c05802b8c744a4d88e3dc  
+source:

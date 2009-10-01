@@ -41,5 +41,27 @@ cache = ROOT + '/e/home/application_data/cygwin'
 
 Revision 4
 ----------
-A line from windowsland.
+
+Hack in hardcoded Cygwin 1.7 compatibility to cyg-apt. Add temporary fix to package searches: crudely disable regex searches to avoid failing on
+ packgenames containing control characters.
+
+Added uninstall tests to test-cyg-apt.py and aimed both install and uninstall tests at the product of the newly added mini_mirror : the testpkg packge. Also added tests for postinstall, preremove and postremove scripts.
+
+Added mini_mirror:
+Mini mirror builds a Cywin package from scratch and installs it to a remote server. See mini_mirror/README
+
+Revision 9
+----------
+
+
+
+
+
+
+
+
+
+
+
+
 
