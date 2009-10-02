@@ -375,7 +375,6 @@ def download ():
     ball ()
     md5 ()
     print ""
-    
         
 def no_package (s='error'):
     sys.stderr.write \
@@ -744,6 +743,25 @@ def remove ():
                   % (packagename,
                      version_to_string (get_installed_version ())))
         do_uninstall ()
+
+def purge ():
+    '''purge package'''
+    remove()
+    global packagename
+    for packagename in files[1:]:
+        scripts = [ROOT + '/etc/postinstall/%s.sh' % packagename + ".done",
+        ROOT + '/etc/preremove/%s.sh' % packagename + ".done",
+        ROOT + '/etc/postremove/%s.sh' % packagename + ".done"]
+        for s in scripts:
+            if os.path.exists(s):
+                os.remove(s)
+        ball = get_ball()
+        if os.path.exists(ball):
+            os.remove(ball)
+
+    
+    
+    
     
 def install ():
     '''download and install packages with dependencies'''
