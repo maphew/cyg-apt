@@ -19,7 +19,9 @@ mv $(TARFILE) ../release-2/testpkg/testpkg-0.0.1-0-src.tar.bz2
 	setup_ini_md5_fix.py patched.ini testpkg ../build/release-2/testpkg/testpkg-0.0.1-0-src.tar.bz2
 	patch patched.ini testpkg-0.0.1-0-src.tar.bz2.diff
 	scp patched.ini chrisc@wanda:~/public_html/setup-2.ini
-	
+	/usr/bin/rm -rf testpkg-0.0.1-0-src.tar.bz2.diff
+	/usr/bin/rm -rf patched.ini
+	/usr/bin/rm -rf testpkg-0.0.1-0.tar.bz2.diff	
 
 clean:
 	/usr/bin/rm -f ../build/release-2/testpkg/*
