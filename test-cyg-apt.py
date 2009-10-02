@@ -6,6 +6,8 @@ import tarfile
 import utilpack
 import urllib
 import sys
+import tarfile
+import re
 
 
 class TestCygApt(unittest.TestCase):
@@ -33,6 +35,7 @@ class TestCygApt(unittest.TestCase):
             self.relname,\
             self.package_name,\
             self.tarname)
+        self.ver = "0.0.1-0"
 
             
     def init_from_dot_cyg_apt(self):
@@ -74,7 +77,70 @@ class TestCygApt(unittest.TestCase):
         download_out = download_out.split("\n")
         self.assert_(download_out[1] == download_out[2])
         self.assert_fyes(self.expected_ballpath)
+        
+    
+    def testfilelist(self):
+        utilpack.popen("cyg-apt install " + self.package_name)
+        filelistout = \
+            utilpack.popen("cyg-apt filelist " + self.package_name)
+        filelistout = filelistout.split()
+        
+        if tarfile.is_tarfile(self.expected_ballpath):
+            input_tarfile = tarfile.open(self.expected_ballpath)
+            contents = input_tarfile.getnames()
+            for x,y in zip(filelistout, contents):
+                self.assert_(x == y)            
+        else:
+            # Has test-cyg-apt got the wrong idea about the location of 
+            # the tarfile after download?
+            self.assert_(False)
 
+
+    def testfind(self):
+        # the find command equates with dpkg -S /path/to/file
+        utilpack.popen("cyg-apt install " + self.package_name)
+        if tarfile.is_tarfile(self.expected_ballpath):
+            input_tarfile = tarfile.open(self.expected_ballpath)
+            contents = input_tarfile.getnames()
+            found = False
+            for f in contents:
+                if os.path.isfile("/" + f):
+                    found = True
+                    break
+            if not found:
+                self.assert_(False)
+            findout =\
+                utilpack.popen("cyg-apt find " + "/" + f)
+            findout = findout.split()
+            out_package_name = findout[0].split(":")[0]
+            self.assert_(out_package_name == self.package_name)     
+        else:
+            self.assert_(False)
+            
+    def testlist(self):
+        exp = re.compile("^([\w\-.]+)(\W+)([0-9a-z.-]+)$")
+        utilpack.popen("cyg-apt install " + self.package_name)
+        listout = utilpack.popen("cyg-apt list")
+
+        listout = listout.split("\n")
+        listout = [x.strip() for x in listout if x.strip()   != ""]
+        found_name = None
+        found_var = None
+        for l in listout:
+            groups = exp.search(l)
+            if groups:
+                name = groups.group(1)
+                if name == self.package_name:
+                    found_name = name
+                    found_ver = groups.group(3)
+            else:
+                self.assert_(False)
+        self.assert_(found_name and found_ver)
+        self.assert_(found_ver == self.ver)
+                    
+            
+        
+    
             
     def testpurge(self):
         os.system("cyg-apt install " + self.package_name);
