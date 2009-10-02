@@ -5,7 +5,7 @@ import os
 import re
 import sys
 import string
-from path import path
+from utilpack import path
 from subprocess import Popen
 from subprocess import PIPE
 
