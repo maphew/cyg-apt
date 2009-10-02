@@ -4,28 +4,31 @@ import argparse
 import os
 import re
 import sys
-from path import path
+from utilpack import path
 
 
-def hasfiles(to_check):
-    files = path.walkfiles(path(to_check))
-    fl = list(files)
-    if fl:
-        print "Files exist: "
-        for f in fl:
+def hasfiles(to_check, ignore):
+    p = path(to_check)
+    fl = p.files()
+    found = []
+    for f in fl:
+       if ignore not in f:
+           found.append(f)
+    if found:
+        print sys.argv[0] + ": files exist"        
+        for f in found:
             print f
-        return 1
-    else:
-        return 0
     
 def main():
     parser =  argparse.ArgumentParser(description = "Checks a directory recursively for any files, returns true if any files exist.")
     parser.add_argument("to_check",\
         help="Directory to check for files", metavar="DIR")
+    parser.add_argument("ignore",\
+        help="Ignore any path containing this string.", metavar="DIR", default="svn", nargs="?")
 
     #pdb.set_trace()
     options = parser.parse_args()
-    hasfiles(options.to_check)
+    hasfiles(options.to_check, options.ignore)
 
     
     
