@@ -28,7 +28,7 @@ clean:
 	/usr/bin/rm -f ../build/root/etc/postinstall/*
 	/usr/bin/rm -f ../build/root/etc/preremove/*
 	/usr/bin/rm -f ../build/root/etc/postremove/*
-	hasfiles.py ../build
+	hasfiles.py ../build svn
 	/usr/bin/rm -f testpkg-0.0.1-0-src.tar.bz2.diff
 	/usr/bin/rm -f testpkg-0.0.1-0.tar.bz2.diff
 	/usr/bin/rm -f patched.ini
