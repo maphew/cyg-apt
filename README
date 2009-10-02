@@ -22,7 +22,7 @@ The standalone application Python script (does have dependencies on wget and tar
 
 mini_mirror:
 ============
-Supports testing: allows you to build and deploy a test package to a remote directory. The mini_mirror has dependencies on a set of Python utilities, the installer for which is located in this directory. See the README in that directory for more details.
+Supports testing: allows you to build and deploy a test package to a remote directory. The mini_mirror has dependencies on a set of Python utilities, See the README in that directory for more details.
 
 As a side note, since the mini_mirror includes (very crude) system for building a package it might be of some interest as a starting point if you need to automate building of a another package. 
 

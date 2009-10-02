@@ -5,6 +5,9 @@ This subtree is responsible for building a deploying testpkg testpackage from sc
 
 The nice thing about this system is that since it does the *whole* proceedure from scratch, once you have it working you can change/add to testpkg at will and easily use the changes in test-cyg-apt.py.
 
+The downside is that setting up mini_mirror takes a little work.
+
+
 HOWTO
 -----
 When all dependencies are fixed up:
@@ -13,7 +16,11 @@ $ make
 
 SETUP
 -----
-TODO: installing the utilities
+Install the utilties:
+$cd CYG-APT-DIR/setup/utilpack
+$python setup.py install
+where CYG-APT-DIR is your checkout.
+
 You will require space on a web-accessable and scp-accessable server for the test package and will need to hack Makefile accordingly.
 NOTE mini_mirror will OVERWRITE setup.ini on the target directory! Don't point it at a real Cygwin mirror, just point it at an empty directory you control, holding the following directories:
 /release-2
