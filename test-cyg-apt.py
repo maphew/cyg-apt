@@ -27,7 +27,7 @@ class TestCygApt(unittest.TestCase):
         self.tarfile = "mini_mirror/testpkg/build/release-2/testpkg/" +\
             self.tarname
         self.init_from_dot_cyg_apt()
-        self.expected_ballpath = "%s/%s/%s/%s/%s\n" % \
+        self.expected_ballpath = "%s/%s/%s/%s/%s" % \
             (self.opts["cache"],\
             self.mirror_esc,\
             self.relname,\
@@ -46,6 +46,7 @@ class TestCygApt(unittest.TestCase):
     
     def testball(self):
         ballpath = utilpack.popen("cyg-apt ball " + self.package_name)
+        ballpath = ballpath.strip()
         # The tarball location is:
         # cache + mirror + releasename + packagename + tarfile_name
 
@@ -62,8 +63,19 @@ class TestCygApt(unittest.TestCase):
             utilpack.popen("cyg-apt download " + self.package_name)
         download_out = download_out.split("\n")
         self.assert_(download_out[1] == download_out[2])
-    
-    
+        self.assert_fyes(self.expected_ballpath)
+        
+        # Second test: test we can recognise a package is 
+        # not present in the cache and download it.
+        os.remove(self.expected_ballpath)
+        self.assert_fno(self.expected_ballpath)
+        download_out = \
+            utilpack.popen("cyg-apt download " + self.package_name)
+        download_out = download_out.split("\n")
+        self.assert_(download_out[1] == download_out[2])
+        self.assert_fyes(self.expected_ballpath)
+
+            
     def testpurge(self):
         os.system("cyg-apt install " + self.package_name);
         self.confirm_installed(self.package_name);        
