@@ -107,6 +107,9 @@ Also cleaned up other lilly-pond specific comments variables and script lines in
 
 Commented out the hardcoded initial values for offical_mirror, mirror, cache and downloads: until this is sorted out I'd prefer cyg-apt breaks if not given a .cyg-apt or command line arguments for mirror and cache.
 
+Revision 41
+-----------
+
 
 
 
