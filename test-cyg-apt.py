@@ -166,6 +166,25 @@ class TestCygApt(unittest.TestCase):
             + self.package_name).split()
         self.assert_(self.package_name_2 in missingout)
         
+    def testnew(self):
+        pdb.set_trace()
+        setup_ini = self.opts["setup_ini"]
+        setup_ini_basename_diff = os.path.basename(setup_ini) + ".diff"
+        os.system("/usr/bin/cp " + setup_ini + " " + setup_ini + ".save")
+        cmd = "tools/setup_ini_diff_make.py "
+        cmd += setup_ini + " "
+        cmd += self.package_name + " "
+        cmd += "install tarver --field-input "
+        cmd += self.tarname + " 0.0.1-0 0.0.2-0"
+        #setup_ini_diff_make.py setup-2.ini testpkg install tarver --field-input testpkg-0.0.1-0.tar.bz2 0.0.1-0 0.0.2-0
+        os.system(cmd)
+        os.system("patch " + setup_ini + " " + setup_ini_basename_diff)
+        newout = utilpack.popen("cyg-apt new")
+        os.system("/usr/bin/mv " + setup_ini + ".save" + " " + setup_ini)
+        os.system("/usr/bin/rm " + setup_ini_basename_diff)
+        self.assert_(self.package_name in newout)
+
+        
             
     def testpurge(self):
         os.system("cyg-apt install " + self.package_name);
