@@ -71,6 +71,44 @@ Added test for purge and download commands to test-cyg-apt.
 Revision 31
 -----------
 
+Added testpkg-lib to mini-mirror: an empty package. Set testpkg to be dependant on it, and add tests for commands requires and missing: testpkg-lib must turn up as one of testpkg's requires and cyg-apt must be able to detect if testpkg-lib has been removed.
+
+To better handle multiple packags in mini_mirror setup-2.ini moved to mini_mirror root: all package build reference it. Similarly the build tools were moved off testpkg's src directory to a common directory at the cyg-apt project root: /tools.
+
+cyg-apt:
+Added a better error message for md5 command when target package is missing.
+
+test-cyg-apt:
+Add tests for md5, requires and missing commands.
+
+Revision 38
+------------
+
+Added a new tool setup_ini_diff_make.py to patch setup.ini. Doubt this will be
+the final version: keep generalising the tool. Change mini_mirror to use the
+new tool. Also use the new patch tool in test-cyg-apt to test
+the "cyg-apt new" command: temporarily patch .ini to report availability of
+a new (spurious) version of testpkg: 0.0.2-0. Check cyg-apt new reports the
+new version and revert the .ini
+
+Change the standard .cyg-apt to point to a local setup-2.ini
+
+Revsion 39
+----------
+
+Removed build command: new cyg-apt regards building as out of scope.
+Slightly simplified cyg-apt source command: downloads and unpacks a source tarball into the current working directory. Unlike apt-get we don't automatically apply the cygwin patches: the whole business of building cygwin source packages is non-trivial and cyg-apt is making no attempt to deal with them at this point. Potentially the standard application of cygwin-specific diffs could be included.
+
+This pretty much what it did before, but the build step was removed becasue it looked lillypond specific. Also effectively ignore "SRC" variable for the same reason. We might want to put this back in a more generalised form to support downloading source tarballs to directories other than the current one, but his could be overkill.
+
+Added test for the modified cyg-apt source command. The test is very simple and a little hacky: it executes the command, checks the testpkg-0.0.1-0 directory is present and that a marker file is also present: the mini_mirror source package build tree is also checked for the file as a sanity check in case the mini_mirror changes. It's becoming a problem that the "source" package from mini_mirror is just a duplicate of the binary: sufficent for testing but confusing to newcomers!
+
+Also cleaned up other lilly-pond specific comments variables and script lines in cyg-apt, mostly at the top level of the script: EXTRA, MKNETREL, PATCH and some lines from setup() which appeared to be both lillypond and mingw specific. I'm (chrisc) thinking that cyg-apt should focus on complete tested functionality on Cygwin and not worry about MinGW for now, if ever.
+
+Commented out the hardcoded initial values for offical_mirror, mirror, cache and downloads: until this is sorted out I'd prefer cyg-apt breaks if not given a .cyg-apt or command line arguments for mirror and cache.
+
+
+
 
 
 

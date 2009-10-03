@@ -1,6 +1,4 @@
 ROOT="/."
-MKNETREL="/."
-NETREL="/."
 mirror="http://wanda/~chrisc"
 cache="local_cache"
 setup_ini="mini_mirror/setup-2.ini"

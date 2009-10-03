@@ -18,6 +18,9 @@ class TestCygApt(unittest.TestCase):
         self.relname = "release-2"
         self.cyg_apt_rc_file = ".cyg-apt"
         self.tarname = "testpkg-0.0.1-0.tar.bz2"
+        self.sourcename = "testpkg-0.0.1-0"
+        self.sourcemarker = "mini_mirror/testpkg/build/root/usr/bin/testpkg.exe"
+        self.source_unpack_marker = "testpkg-0.0.1-0/usr/bin/testpkg.exe"
         self.pre_remove_marker = "/usr/share/doc/testpkg/README"
         self.post_remove_marker = "/usr/share/doc/testpkg"
         self.post_install_script = "/etc/postinstall/testpkg.sh"
@@ -167,7 +170,6 @@ class TestCygApt(unittest.TestCase):
         self.assert_(self.package_name_2 in missingout)
         
     def testnew(self):
-        pdb.set_trace()
         setup_ini = self.opts["setup_ini"]
         setup_ini_basename_diff = os.path.basename(setup_ini) + ".diff"
         os.system("/usr/bin/cp " + setup_ini + " " + setup_ini + ".save")
@@ -183,8 +185,24 @@ class TestCygApt(unittest.TestCase):
         os.system("/usr/bin/mv " + setup_ini + ".save" + " " + setup_ini)
         os.system("/usr/bin/rm " + setup_ini_basename_diff)
         self.assert_(self.package_name in newout)
+        
+    def testshow(self):
+        utilpack.popen("cyg-apt install " + self.package_name)
+        showout = utilpack.popen("cyg-apt show " + self.package_name)
+        self.assert_("testpkg - is a test package" in showout)
 
         
+    def testsource(self):
+        utilpack.popen("cyg-apt source " + self.package_name)
+        # This may be confusing: the sourcemarker is a file in the  source package
+        # build that we need to know is there in the build before we can confidently
+        # expect it in the "installed" ie downloaded, unpacked source package from
+        # the mini_mirror. It might be less confusing if I hadn't duplicated the
+        # files from the "binary" build.
+        self.assert_fyes(self.sourcemarker)
+        self.assert_fyes(self.sourcename)
+        self.assert_fyes(self.source_unpack_marker)
+        os.system("/usr/bin/rm -rf " + self.sourcename)
             
     def testpurge(self):
         os.system("cyg-apt install " + self.package_name);
