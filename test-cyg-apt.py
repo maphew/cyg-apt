@@ -8,12 +8,13 @@ import urllib
 import sys
 import tarfile
 import re
-
+import md5
 
 class TestCygApt(unittest.TestCase):
 
     def setUp(self):
         self.package_name = "testpkg"
+        self.package_name_2 = "testpkg-lib"
         self.relname = "release-2"
         self.cyg_apt_rc_file = ".cyg-apt"
         self.tarname = "testpkg-0.0.1-0.tar.bz2"
@@ -137,10 +138,34 @@ class TestCygApt(unittest.TestCase):
                 self.assert_(False)
         self.assert_(found_name and found_ver)
         self.assert_(found_ver == self.ver)
-                    
-            
+        
+        
+    def testmd5(self):
+        utilpack.popen("cyg-apt install " + self.package_name)
+        md5out = utilpack.popen("cyg-apt md5 " + self.package_name)
+        md5out = md5out.splitlines()
+        md5out = [x.split() for x in md5out]
+        b = file(self.expected_ballpath,"rb").read()
+        m = md5.new()
+        m.update(b)
+        digest = m.hexdigest()
+        self.assert_(digest == md5out[0][0] == md5out[1][0])
         
     
+    def testrequires(self):
+        # package 2 is a dependency for package
+        utilpack.popen("cyg-apt install " + self.package_name)
+        requiresout = utilpack.popen("cyg-apt requires "\
+            + self.package_name).split()
+        self.assert_(self.package_name_2 in requiresout)
+        
+    def testmissing(self):
+        utilpack.popen("cyg-apt install " + self.package_name)
+        utilpack.popen("cyg-apt remove " + self.package_name_2)
+        missingout = utilpack.popen("cyg-apt missing "\
+            + self.package_name).split()
+        self.assert_(self.package_name_2 in missingout)
+        
             
     def testpurge(self):
         os.system("cyg-apt install " + self.package_name);

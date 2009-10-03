@@ -546,6 +546,11 @@ def check_md5 (verbose=0):
     
 def md5 ():
     '''check md5 sum'''
+    if not os.path.exists (get_ball ()):
+        sys.stderr.write ("%s: %s not installed. Exiting.\n"\
+            % (os.path.basename(sys.argv[0]), packagename))
+        return 1
+    
     url, md5 = get_url ()
     ball = os.path.basename (url)
     print '%s  %s' % (md5, ball)
