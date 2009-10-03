@@ -1,6 +1,4 @@
-sdesc: "is a test package"
-ldesc: "testpkg is a test package"
-
-This is a test package for testing apt-cyg
-requires:
+sdesc: "Test package."
+ldesc: "Test package -- long desc."
 category: Utils
+requires: cygwin testpkg-lib
