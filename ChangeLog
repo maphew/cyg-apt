@@ -65,8 +65,11 @@ Move test-cyg-apt.py and mini_mirror to use utilpack for path handling, and adde
 mini_mirror now ignores any file with substring "svn" in the path/name when "building" the build clean target.
 
 Added "purge" command as per apt-get to cyg-apt.
-Added test for purge command to test-cyg-apt.
+Added test for purge and download commands to test-cyg-apt.
 
+
+Revision 31
+-----------
 
 
 
