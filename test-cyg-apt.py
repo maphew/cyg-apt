@@ -18,6 +18,7 @@ class TestCygApt(unittest.TestCase):
         self.relname = "release-2"
         self.cyg_apt_rc_file = ".cyg-apt"
         self.tarname = "testpkg-0.0.1-0.tar.bz2"
+        self.tarpath = "release-2/testpkg/"                
         self.sourcename = "testpkg-0.0.1-0"
         self.sourcemarker = "mini_mirror/testpkg/build/root/usr/bin/testpkg.exe"
         self.source_unpack_marker = "testpkg-0.0.1-0/usr/bin/testpkg.exe"
@@ -203,6 +204,14 @@ class TestCygApt(unittest.TestCase):
         self.assert_fyes(self.sourcename)
         self.assert_fyes(self.source_unpack_marker)
         os.system("/usr/bin/rm -rf " + self.sourcename)
+     
+        
+    def testurl(self):
+        os.system("cyg-apt install " + self.package_name);
+        urlout = utilpack.popen("cyg-apt url " + self.package_name).strip()
+        expect = self.opts["mirror"] + "/" + self.tarpath + self.tarname
+        self.assert_(urlout == expect)
+        
             
     def testpurge(self):
         os.system("cyg-apt install " + self.package_name);

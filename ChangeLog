@@ -110,6 +110,15 @@ Commented out the hardcoded initial values for offical_mirror, mirror, cache and
 Revision 41
 -----------
 
+Fixed comment on cyg-apt uninstall_want_file_removed(): as it stands any function __doc__ string is reported in the --help as if the function is a command and uninstall_want_file_removed() is not a command.
+
+Fixed cyg-apt url command: wasn't prefixing with mirror url.
+
+Added a test for fixed cyg-apt url command.
+
+Revision 42
+-----------
+
 
 
 
