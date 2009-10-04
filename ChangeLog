@@ -137,10 +137,19 @@ Use a less confusing list comprehension. I notice the implemenation isn't as eff
 
 * Moved the setup-2.ini used in testing back to /etc/setup-2.ini until I get it sorted out.
 
+* Last commit before culling the top-level script.
+
 Revision 44
 -----------
 
+Added a test for cyg-apt update.
 
+Big architectural change to cyg-apt: gathered the top-level script into a "main" function which has the same role with the advantage of being all in the one place: the top level script was scattered through the file, which makes it very hard to track what happens before the execution of the command entry point. This proved harder than expected due to the large number of existing globals and the way that .cyg-apt is read into the top level's __dict__ necessitating more globals to keep it working.
+
+Passes all the tests in the testsuite but this was such a disruptive change I expect more bugs in the future.
+
+Revision 45
+-----------
 
 
 

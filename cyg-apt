@@ -17,7 +17,9 @@ import string
 import sys
 import pdb
 import tarfile
-
+#urg
+plist = list
+    
 try:
     import urllib
 except:
@@ -50,141 +52,6 @@ except:
     os.popen = fake_pipe
     pass
 
-basename = os.path.basename (sys.argv[0])
-target = 'cygwin'
-if basename[:3] == 'min':
-    target = 'mingw'
-
-HOME = os.environ['HOME']
-CWD = os.getcwd ()
-ROOT = './'
-home_cyg_apt_rc = HOME + '/.' + basename
-cwd_cyg_apt_rc = CWD + '/.' + basename
-cygwin_p = os.uname ()[0][:6] == 'CYGWIN'
-
-if cygwin_p:
-    ROOT = '/.'
-    if target == 'mingw':
-        ##ROOT = '/cygdrive/c/mingw'
-        PFD_key = '/machine/Software/Microsoft/Windows/CurrentVersion/ProgramFilesDir'
-        pfd = os.popen ("regtool get %(PFD_key)s | cygpath -uf-"
-            % vars ()).read ()[:-1]
-        ROOT = pfd + '/LilyPond'
-        if not os.path.exists (ROOT):
-            os.makedirs (ROOT)
-
-config = ROOT + '/etc/setup'
-setup_ini = config + '/setup-2.ini'
-
-INSTALL = 'install'
-installed_db_magic = 'INSTALLED.DB 2\n'
-distname = 'curr'
-
-# Don't depend on harcoded values for now: must provide .cyg-apt
-# official_mirror = 'http://mirror.internode.on.net/pub/cygwin/'
-# mirror = "/local_mirror"
-# cache = ROOT + '/e/home/application_data/cygwin_1_7' 
-# downloads = cache + '/' + urllib.quote (mirror, '').lower ()
-
-rc_options = ['ROOT', 'mirror', 'cache', 'setup_ini', 'distname']
-h = 0
-
-if os.path.exists (cwd_cyg_apt_rc):
-    h = open (cwd_cyg_apt_rc)
-elif os.path.exists (home_cyg_apt_rc):
-    h = open (home_cyg_apt_rc)
-if h:
-    for i in h.readlines ():
-        k, v = i.split ('=', 2)
-        if k in rc_options:
-            __main__.__dict__[k] = eval (v)
-    h.close ()
-
-config = ROOT + '/etc/setup'
-
-downloads = cache + '/' + urllib.quote (mirror, '').lower ()
-installed_db = config + '/installed.db'
-
-def usage ():
-    sys.stdout.write ('''%s [OPTION]... COMMAND [PACKAGE]...
-
-Commands:
-''' % basename)
-    d = __main__.__dict__
-    commands = filter (lambda x:
-               type (d[x]) == type (usage) and d[x].__doc__, d)
-    sys.stdout.writelines (map (lambda x:
-                    "    %s - %s\n" % (x, d[x].__doc__),
-                   psort (commands)))
-    sys.stdout.write (r'''
-Options:
-    -c,--cache=DIR         download cache [%(cache)s]
-    -d,--download          download only
-    -h,--help              show brief usage
-    -i,--ini=FILE          use setup-2.ini [%(setup_ini)s]
-    -m,--mirror=URL        use mirror [%(mirror)s]
-    -r,--root=DIR          set %(target)s root [%(ROOT)s]
-    -t,--dist=NAME         set dist name (curr, test, prev) [%(distname)s]
-    -x,--no-deps           ignore dependencies
-''' % d)
-              
-(options, files) = getopt.getopt (sys.argv[1:],
-                  'c:dhi:m:r:t:x',
-                  ('cache=', 'download', 'help', 'mirror=',
-                   'root=', 'ini=', 'dist=', 'no-deps'))
-
-
-command = 'help'
-if len (files) > 0:
-    command = files[0]
-
-packagename = 0
-if len (files) > 1:
-    packagename = files[1]
-
-
-nodeps_p = 0
-download_p = 0
-for i in options:
-    o = i[0]
-    a = i[1]
-    
-    if 0:
-        pass
-    elif o == '--cache' or o == '-c':
-        cache = a
-        downloads = cache + '/' + urllib.quote (mirror, '').lower ()
-    elif o == '--download' or o == '-d':
-            download_p = 1
-    elif o == '--help' or o == '-h':
-        command = 'help'
-    elif o == '--ini' or o == '-i':
-        setup_ini = a
-    elif o == '--mirror' or o == '-m':
-        mirror = a
-        downloads = cache + '/' + urllib.quote (mirror, '').lower ()
-    elif o == '--root' or o == '-r':
-        ROOT = a
-        config = ROOT + '/etc/setup'
-        cache = ROOT + '/var/cache/setup'
-        setup_ini = config + '/setup-2.ini'
-        installed_db = config + '/installed.db'
-        downloads = cache + '/' + urllib.quote (mirror, '').lower ()
-    elif o == '--dist' or o == '-t':
-        distname = a
-    elif o == '--no-deps' or o == '-x':
-        nodeps_p = 1
-
-home_based_p = ROOT == os.path.abspath (ROOT)
-if home_based_p:
-    cyg_apt_rc = home_cyg_apt_rc
-else:
-    cyg_apt_rc = cwd_cyg_apt_rc
-
-h = open (cyg_apt_rc, 'w')
-for i in rc_options:
-    h.write ('%s="%s"\n' % (i, __main__.__dict__[i]))
-h.close ()
         
 
 def version_to_string (t):
@@ -195,6 +62,7 @@ def version_to_string (t):
     return '%s-%s' % (string.join (map (try_itoa, t[:-1]), '.'),
               t[-1])
 
+
 def string_to_version (s):
     s = re.sub ('([^0-9][^0-9]*)', ' \\1 ', s)
     s = re.sub ('[ _.-][ _.-]*', ' ', s)
@@ -203,6 +71,7 @@ def string_to_version (s):
             return string.atoi (x)
         return x
     return tuple (map (try_atoi, (string.split (s, ' '))))
+
 
 def split_ball (p):
     m = re.match ('^(.*)-([0-9].*-[0-9]+)(.tar.bz2)?$', p)
@@ -216,17 +85,17 @@ def split_ball (p):
 def join_ball (t):
     return t[0] + '-' + version_to_string (t[1])
 
-###########################
-
 
 def debug (s):
     s
+
 
 def uri_get (dir, uri):
     if uri[:7] == 'file://':
         return os.system ('cp -pv "%s" "%s"' % (uri[7:], dir))
     else:
         return os.system ('cd "%s" && wget -c "%s"' % (dir, uri))
+
 
 def help ():
     '''help COMMAND'''
@@ -236,8 +105,7 @@ def help ():
 
     print  __main__.__dict__[packagename].__doc__
 
-dists = 0
-distnames = ('curr', 'test', 'prev')
+
 def get_setup_ini ():
     global dists
     if dists:
@@ -278,6 +146,7 @@ def get_setup_ini ():
             records[key] = value
             j = j + 1
         packages[name] = records
+
         
 def get_url ():
     if not dists[distname].has_key (packagename) \
@@ -299,17 +168,21 @@ def get_url ():
     file, size, md5 = string.split (install)
     return file, md5
 
+
 def url ():
     '''print tarball url'''
     print mirror + "/" + get_url()[0]
+
 
 def get_ball ():
     url, md5 = get_url ()
     return '%s/%s' % (downloads, url)
 
+
 def ball ():
     '''print tarball name'''
     print get_ball ()
+
     
 def do_download ():
     url, md5 = get_url ()
@@ -327,16 +200,19 @@ def do_download ():
         if status:
             raise 'urg'
 
+
 def download ():
     '''download package'''
     do_download ()
     ball ()
     md5 ()
     print ""
+
         
 def no_package (s='error'):
     sys.stderr.write \
     ("%s: %s not in [%s]\n" % (s, packagename, distname))
+
 
 def get_requires():
     # Looking for dependencies on curr not prev or test
@@ -374,6 +250,7 @@ def get_requires():
     rlist.sort()
     return rlist
 
+
 def requires ():
     '''print requires: for package'''
     print string.join (get_requires (), '\n')
@@ -386,7 +263,6 @@ def buildrequires ():
     print string.join (get_requires (), '\n')
 
 
-installed = 0
 def get_installed ():
     global installed
     if installed:
@@ -397,6 +273,7 @@ def get_installed ():
         installed[int (status)][name] = ball
     return installed
 
+
 def write_installed ():
     file = open (installed_db, 'w')
     file.write (installed_db_magic)
@@ -405,6 +282,7 @@ def write_installed ():
     if file.close ():
         raise 'urg'
 
+
 def get_field (field, default=''):
     for d in (distname,) + distnames:
         if dists[d].has_key (packagename) \
@@ -412,12 +290,12 @@ def get_field (field, default=''):
             return dists[d][packagename][field]
     return default
 
+
 def psort (lst):
     plist.sort (lst)
     return lst
 
-#urg
-plist = list
+
 def list ():
     '''installed packages'''
     global packagename
@@ -432,9 +310,11 @@ def list ():
             s += '(%s)' % version_to_string (new)
         print s
 
+
 def filelist ():
     '''installed files'''
     print string.join (get_filelist (), '\n')
+
 
 def update ():
     '''setup-2.ini'''
@@ -446,6 +326,7 @@ def update ():
     if os.path.exists (setup_ini):
         os.system ('cd %s && mv -f setup-2.ini setup-2.ini~' % config)
     os.system ('cp -pf "%s/setup-2.ini" "%s"' % (downloads, config))
+
 
 def get_version ():
     if not dists[distname].has_key (packagename) \
@@ -459,9 +340,11 @@ def get_version ():
         ball = os.path.split (file)[1]
         package['ver'] = split_ball (ball)[1]
     return package['ver']
-    
+
+   
 def get_installed_version ():
     return split_ball (installed[0][packagename])[1]
+
 
 def version ():
     '''print installed version'''
@@ -480,6 +363,7 @@ def version ():
                 sys.exit (1)
             print '%-20s%-12s' % (packagename,
                      version_to_string (get_installed_version ()))
+
     
 def get_new ():
     global packagename
@@ -492,6 +376,7 @@ def get_new ():
             lst.append (packagename)
     return lst
 
+
 def new ():
     '''list new (upgradable) packages in distribution'''
     #print string.join (get_new (), '\n')
@@ -500,14 +385,17 @@ def new ():
         print '%-20s%-12s' % (packagename,
                       version_to_string (get_version ()))
 
+
 def get_md5 ():
     url, md5 = get_url ()
     pipe = os.popen ('md5sum "%s/%s"' % (downloads, url), 'r')
     actual_md5 = string.split (pipe.read ())[0]
     return actual_md5
 
+
 def check_md5 (verbose=0):
     return get_url ()[1] == get_md5 ()
+
     
 def md5 ():
     '''check md5 sum'''
@@ -523,6 +411,7 @@ def md5 ():
     print '%s  %s' % (actual_md5, ball)
     if actual_md5 != md5:
         raise 'URG'
+
     
 def search ():
     '''search package list'''
@@ -556,6 +445,7 @@ def search ():
             s += ' - %s' % d[1:-1]
         print s
 
+
 def show ():
     '''print information for package'''
     s = packagename
@@ -565,6 +455,7 @@ def show ():
     print s
     print
     print get_field ('ldesc')
+
 
 def get_missing ():
     reqs = get_requires ()
@@ -584,13 +475,16 @@ def get_missing ():
             lst.append (packagename)
     return lst
 
+
 def missing ():
     '''print missing dependencies'''
     print string.join (get_missing (), '\n')
 
+
 def run_script (file_name):
      sys.stderr.write ('running: %(file_name)s\n' % vars ())
      os.system ('sh "%(file_name)s" && mv "%(file_name)s" "%(file_name)s.done"' % vars ())
+
 
 def try_run_script (file_name):
     if os.path.isfile (file_name):
@@ -600,12 +494,14 @@ def try_run_script (file_name):
             sys.stderr.write ('warning: please see after: %(file_name)s' % vars ())
             sys.stderr.write ('\n')
 
+
 def run_all (dir):
     if os.path.isdir (dir):
         #lst = filter (lambda x: x[-5:] != '.done', os.listdir (dir))
         lst = filter (lambda x: x[-3:] == '.sh', os.listdir (dir))
         for i in lst:
             try_run_script ('%s/%s' % (dir, i))
+
 
 def do_install ():
     # find ball
@@ -625,6 +521,7 @@ def do_install ():
     # write installed.db
     write_installed ()
 
+
 def get_filelist ():
     filelist_file = "%s/%s.lst.gz" % (config, packagename)
     pipe = os.popen ('gzip -dc ' + filelist_file, 'r')
@@ -632,6 +529,7 @@ def get_filelist ():
     if pipe.close ():
         raise 'urg'
     return lst
+
 
 def write_filelist (lst):
     lst_name = '%s/%s.lst' % (config, packagename)
@@ -648,6 +546,7 @@ def write_filelist (lst):
         os.system ('gzip -f "%s"' % lst_name)
     os.system ('touch -r %s %s.gz' % (setup_ini, lst_name))
 
+
 def remove_filelist():
     lst_name = '%s/%s.lst.gz' % (config, packagename)
     if os.path.exists(lst_name):
@@ -655,7 +554,8 @@ def remove_filelist():
     else:
         sys.stderr.write ('%S: warning %s no such file\n' % \
              (sys.argv[0], lst_name))
-             
+
+            
 def uninstall_want_file_removed(file, postremove, nowarns):
     # Returns true if the path from the tarball should result in a file # removal operation, false if not.
     if not os.path.exists (file) and not os.path.islink (file):
@@ -664,6 +564,7 @@ def uninstall_want_file_removed(file, postremove, nowarns):
         return False
     elif not os.path.isdir (file) and file != postremove:
         return True
+   
              
 def do_uninstall ():
     try_run_script (ROOT + '/etc/preremove/%s.sh' % packagename)    
@@ -699,6 +600,7 @@ def do_uninstall ():
     del (installed[0][packagename])
     write_installed ()
 
+
 def remove ():
     '''uninstall packages'''
 
@@ -711,6 +613,7 @@ def remove ():
                   % (packagename,
                      version_to_string (get_installed_version ())))
         do_uninstall ()
+
 
 def purge ():
     '''purge package'''
@@ -727,10 +630,7 @@ def purge ():
         if os.path.exists(ball):
             os.remove(ball)
 
-    
-    
-    
-    
+
 def install ():
     '''download and install packages with dependencies'''
     global packagename
@@ -760,10 +660,12 @@ def install ():
         do_install ()
     run_all (ROOT + '/etc/postinstall')
 
+
 def upgrade ():
     '''all installed packages'''
     files[1:] = get_new ()
     install ()
+
 
 def setup ():
     '''cygwin environment'''
@@ -833,25 +735,172 @@ def find ():
                 hits.append ('%s: /%s' % (packagename, i))
     print (string.join (hits, '\n'))
 
-if command == 'setup':
-    setup ()
-    sys.exit (0)
+def usage():
+    global basename
+    sys.stdout.write ('''%s [OPTION]... COMMAND [PACKAGE]...
+  
+    Commands:\n''' % basename)
+    d = __main__.__dict__
+    commands = filter (lambda x:
+               type (d[x]) == type (usage) and d[x].__doc__, d)
+    sys.stdout.writelines (map (lambda x:
+                    "    %s - %s\n" % (x, d[x].__doc__),
+    psort (commands)))
+    sys.stdout.write (r'''
+        Options:
+            -c,--cache=DIR         download cache [%(cache)s]
+            -d,--download          download only
+            -h,--help              show brief usage
+            -i,--ini=FILE          use setup-2.ini [%(setup_ini)s]
+            -m,--mirror=URL        use mirror [%(mirror)s]
+            -r,--root=DIR          set %(target)s root [%(ROOT)s]
+            -t,--dist=NAME         set dist name (curr, test, prev) [%(distname)s]
+            -x,--no-deps           ignore dependencies
+        ''' % d)
 
-if command == 'update':
-    update ()
-    sys.exit (0)
 
-for i in (installed_db, setup_ini):
-    if not os.path.isfile (i):
-        usage ()
-        sys.stderr.write ('\n')
-        sys.stderr.write ('error: %s no such file\n' % i)
-        sys.stderr.write ('error: run %(basename)s setup?\n' % vars ())
-        sys.exit (2)
+def main():
+    global cache
+    global mirror
+    global downloads
+    global config
+    global dists
+    global installed
+    global installed_db
+    global files
+    global nodeps_p
+    global INSTALL
+    global download_p
+    global cygwin_p
+    global installed_db_magic
+    global packagename
+    global basename
+    global target
+    global distnames
     
-get_setup_ini ()
-get_installed ()
+    basename = os.path.basename (sys.argv[0])
+    target = 'cygwin'
+    if basename[:3] == 'min':
+        target = 'mingw'
+           
+    HOME = os.environ['HOME']
+    CWD = os.getcwd ()
+    ROOT = './'
+    home_cyg_apt_rc = HOME + '/.' + basename
+    cwd_cyg_apt_rc = CWD + '/.' + basename
+    pdb.set_trace()
+    cygwin_p = os.uname ()[0][:6] == 'CYGWIN'
+    
+    config = ROOT + '/etc/setup'
+    setup_ini = config + '/setup-2.ini'
+    
+    INSTALL = 'install'
+    installed_db_magic = 'INSTALLED.DB 2\n'
+    distname = 'curr'
+    
+    # Don't depend on harcoded values for now: must provide .cyg-apt
+    # official_mirror = 'http://mirror.internode.on.net/pub/cygwin/'
+    # mirror = "/local_mirror"
+    # cache = ROOT + '/e/home/application_data/cygwin_1_7' 
+    # downloads = cache + '/' + urllib.quote (mirror, '').lower ()
+    
+    rc_options = ['ROOT', 'mirror', 'cache', 'setup_ini', 'distname']
+    h = 0
+    
+    if os.path.exists (cwd_cyg_apt_rc):
+        h = open (cwd_cyg_apt_rc)
+    elif os.path.exists (home_cyg_apt_rc):
+        h = open (home_cyg_apt_rc)
+    if h:
+        for i in h.readlines ():
+            k, v = i.split ('=', 2)
+            if k in rc_options:
+                __main__.__dict__[k] = eval (v)
+        h.close ()
+    config = ROOT + '/etc/setup'
+    
+    downloads = cache + '/' + urllib.quote (mirror, '').lower ()
+    installed_db = config + '/installed.db'             
+    (options, files) = getopt.getopt (sys.argv[1:],
+                      'c:dhi:m:r:t:x',
+                      ('cache=', 'download', 'help', 'mirror=',
+                       'root=', 'ini=', 'dist=', 'no-deps'))  
+    
+    command = 'help'
+    if len (files) > 0:
+        command = files[0]
+    
+    packagename = 0
+    if len (files) > 1:
+        packagename = files[1]
+     
+    nodeps_p = 0
+    download_p = 0
+    for i in options:
+        o = i[0]
+        a = i[1]
+        
+        if 0:
+            pass
+        elif o == '--cache' or o == '-c':
+            cache = a
+            downloads = cache + '/' + urllib.quote (mirror, '').lower ()
+        elif o == '--download' or o == '-d':
+                download_p = 1
+        elif o == '--help' or o == '-h':
+            command = 'help'
+        elif o == '--ini' or o == '-i':
+            setup_ini = a
+        elif o == '--mirror' or o == '-m':
+            mirror = a
+            downloads = cache + '/' + urllib.quote (mirror, '').lower ()
+        elif o == '--root' or o == '-r':
+            ROOT = a
+            config = ROOT + '/etc/setup'
+            cache = ROOT + '/var/cache/setup'
+            setup_ini = config + '/setup-2.ini'
+            installed_db = config + '/installed.db'
+            downloads = cache + '/' + urllib.quote (mirror, '').lower ()
+        elif o == '--dist' or o == '-t':
+            distname = a
+        elif o == '--no-deps' or o == '-x':
+            nodeps_p = 1
+    
+    home_based_p = ROOT == os.path.abspath (ROOT)
+    if home_based_p:
+        cyg_apt_rc = home_cyg_apt_rc
+    else:
+        cyg_apt_rc = cwd_cyg_apt_rc
+    
+    h = open (cyg_apt_rc, 'w')
+    for i in rc_options:
+        h.write ('%s="%s"\n' % (i, __main__.__dict__[i]))
+    h.close ()
+    dists = 0
+    distnames = ('curr', 'test', 'prev')
 
+    installed = 0
+    if command == 'setup':
+        setup ()
+        sys.exit (0)
 
-if command and command in __main__.__dict__:
-    __main__.__dict__[command] ()
+    if command == 'update':
+        update ()
+        sys.exit (0)
+    
+    for i in (installed_db, setup_ini):
+        if not os.path.isfile (i):
+            usage ()
+            sys.stderr.write ('\n')
+            sys.stderr.write ('error: %s no such file\n' % i)
+            sys.stderr.write ('error: run %(basename)s setup?\n' % vars ())
+            sys.exit (2)
+        
+    get_setup_ini ()
+    get_installed ()
+        
+    if command and command in __main__.__dict__:
+        __main__.__dict__[command] ()
+        
+if __name__ == '__main__':
+    main()

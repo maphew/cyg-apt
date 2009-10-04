@@ -37,6 +37,7 @@ class TestCygApt(unittest.TestCase):
             self.tarname
         self.tarfile_2 = "mini_mirror/testpkg/build/release-2/testpkg/" +\
             self.tarname_2
+        self.build_setup_ini = "mini_mirror/setup-2.ini"
         self.init_from_dot_cyg_apt()
         self.expected_ballpath = "%s/%s/%s/%s/%s" % \
             (self.opts["cache"],\
@@ -61,7 +62,6 @@ class TestCygApt(unittest.TestCase):
         ballpath = ballpath.strip()
         # The tarball location is:
         # cache + mirror + releasename + packagename + tarfile_name
-
         self.assert_(self.expected_ballpath == ballpath)
         
         
@@ -233,6 +233,26 @@ class TestCygApt(unittest.TestCase):
         self.assert_fyes(self.version_2_marker)
         self.new_upgrade_test_cleanup()
   
+    def testupdate(self):
+        setup_ini = self.opts["setup_ini"]
+        setup_ini_basename_diff = os.path.basename(setup_ini) + ".diff"
+        cmd = "tools/setup_ini_diff_make.py "
+        cmd += self.opts["setup_ini"] + " "
+        cmd += self.package_name + " "
+        cmd += "install tarver --field-input "
+        cmd += self.tarname + " 0.0.1-0 0.0.2-0"
+        os.system(cmd)
+        os.system("patch " + setup_ini + " " + setup_ini_basename_diff)
+
+        
+        upgradeout = utilpack.popen("cyg-apt update")
+        diffout = utilpack.popen\
+        (\
+            "diff " + self.opts["setup_ini"] + " " +\
+            self.build_setup_ini
+        )
+        self.assert_(diffout == "")
+            
 
 
     def testshow(self):
