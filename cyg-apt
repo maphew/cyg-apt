@@ -669,6 +669,8 @@ def upgrade ():
 
 def setup ():
     '''cygwin environment'''
+    global installed
+    
     if not os.path.isdir (ROOT):
         sys.stderr.write ('error: %s no root dir\n' % ROOT)
         sys.exit (2)
@@ -677,7 +679,6 @@ def setup ():
         os.makedirs (config)
     if not os.path.isfile (installed_db):
         sys.stderr.write ('creating %s\n' % installed_db)
-        global installed
         installed = {0:{}}
         write_installed ()
     if not os.path.isfile (setup_ini):
@@ -736,10 +737,10 @@ def find ():
     print (string.join (hits, '\n'))
 
 def usage():
-    global basename
+    scriptname = os.path.basename (sys.argv[0])
     sys.stdout.write ('''%s [OPTION]... COMMAND [PACKAGE]...
   
-    Commands:\n''' % basename)
+    Commands:\n''' % scriptname)
     d = __main__.__dict__
     commands = filter (lambda x:
                type (d[x]) == type (usage) and d[x].__doc__, d)
@@ -753,10 +754,68 @@ def usage():
             -h,--help              show brief usage
             -i,--ini=FILE          use setup-2.ini [%(setup_ini)s]
             -m,--mirror=URL        use mirror [%(mirror)s]
-            -r,--root=DIR          set %(target)s root [%(ROOT)s]
+            -r,--root=DIR          set root [%(ROOT)s]
             -t,--dist=NAME         set dist name (curr, test, prev) [%(distname)s]
             -x,--no-deps           ignore dependencies
         ''' % d)
+
+
+def get_rc():
+    global cache
+    global mirror
+    global downloads
+    global config
+    global dists
+    global installed
+    global installed_db
+    global files
+    global nodeps_p
+    global INSTALL
+    global download_p
+    global installed_db_magic
+    global packagename
+    #global basename
+    global distnames
+    global ROOT
+    global rc_options
+    global cygwin_p
+    
+    # Fetch basic configuration from the OS
+    scriptname = os.path.basename (sys.argv[0])           
+    HOME = os.environ['HOME']
+    CWD = os.getcwd ()
+    cygwin_p = os.uname ()[0][:6] == 'CYGWIN'
+    
+    # Configuration hardcoded then overrridden by .cyg-apt
+    ROOT = '/.'
+    config = ROOT + '/etc/setup'
+    setup_ini = config + '/setup-2.ini'
+    distname = 'curr'
+    
+    # Don't depend on harcoded values for now: must provide .cyg-apt
+    # mirror = "/local_mirror"
+    # cache = ROOT + '/e/home/application_data/cygwin_1_7' 
+    # downloads = cache + '/' + urllib.quote (mirror, '').lower ()       
+    
+    # Take our configuration from .cyg-apt      
+    h = 0
+    home_cyg_apt_rc = HOME + '/.' + scriptname
+    cwd_cyg_apt_rc = CWD + '/.' + scriptname
+    if os.path.exists (cwd_cyg_apt_rc):
+        h = open (cwd_cyg_apt_rc)
+    elif os.path.exists (home_cyg_apt_rc):
+        h = open (home_cyg_apt_rc)
+    if h:
+        for i in h.readlines ():
+            k, v = i.split ('=', 2)
+            if k in rc_options:
+                __main__.__dict__[k] = eval (v)
+        h.close ()
+    
+    # Some values are derived from .cyg-apt
+    config = ROOT + '/etc/setup'    
+    downloads = cache + '/' + urllib.quote (mirror, '').lower ()
+    installed_db = config + '/installed.db'
 
 
 def main():
@@ -771,60 +830,27 @@ def main():
     global nodeps_p
     global INSTALL
     global download_p
-    global cygwin_p
     global installed_db_magic
     global packagename
-    global basename
-    global target
     global distnames
-    
-    basename = os.path.basename (sys.argv[0])
-    target = 'cygwin'
-    if basename[:3] == 'min':
-        target = 'mingw'
-           
-    HOME = os.environ['HOME']
-    CWD = os.getcwd ()
-    ROOT = '/.'
-    home_cyg_apt_rc = HOME + '/.' + basename
-    cwd_cyg_apt_rc = CWD + '/.' + basename
-    cygwin_p = os.uname ()[0][:6] == 'CYGWIN'
-    
-    config = ROOT + '/etc/setup'
-    setup_ini = config + '/setup-2.ini'
-    
-    INSTALL = 'install'
+    global ROOT
+    global setup_ini
+    global rc_options
+
+    # Define constants
     installed_db_magic = 'INSTALLED.DB 2\n'
-    distname = 'curr'
-    
-    # Don't depend on harcoded values for now: must provide .cyg-apt
-    # official_mirror = 'http://mirror.internode.on.net/pub/cygwin/'
-    # mirror = "/local_mirror"
-    # cache = ROOT + '/e/home/application_data/cygwin_1_7' 
-    # downloads = cache + '/' + urllib.quote (mirror, '').lower ()
-    
+    INSTALL = 'install'
     rc_options = ['ROOT', 'mirror', 'cache', 'setup_ini', 'distname']
-    h = 0
+    distnames = ('curr', 'test', 'prev')
+            
+    # Take our configuration from .cyg-apt
+    get_rc()
     
-    if os.path.exists (cwd_cyg_apt_rc):
-        h = open (cwd_cyg_apt_rc)
-    elif os.path.exists (home_cyg_apt_rc):
-        h = open (home_cyg_apt_rc)
-    if h:
-        for i in h.readlines ():
-            k, v = i.split ('=', 2)
-            if k in rc_options:
-                __main__.__dict__[k] = eval (v)
-        h.close ()
-    config = ROOT + '/etc/setup'
-    
-    downloads = cache + '/' + urllib.quote (mirror, '').lower ()
-    installed_db = config + '/installed.db'             
+    # Override one or more configuration elements if on the command line
     (options, files) = getopt.getopt (sys.argv[1:],
                       'c:dhi:m:r:t:x',
                       ('cache=', 'download', 'help', 'mirror=',
-                       'root=', 'ini=', 'dist=', 'no-deps'))  
-    
+                       'root=', 'ini=', 'dist=', 'no-deps')) 
     command = 'help'
     if len (files) > 0:
         command = files[0]
@@ -838,7 +864,6 @@ def main():
     for i in options:
         o = i[0]
         a = i[1]
-        
         if 0:
             pass
         elif o == '--cache' or o == '-c':
@@ -865,39 +890,30 @@ def main():
         elif o == '--no-deps' or o == '-x':
             nodeps_p = 1
     
-    home_based_p = ROOT == os.path.abspath (ROOT)
-    if home_based_p:
-        cyg_apt_rc = home_cyg_apt_rc
-    else:
-        cyg_apt_rc = cwd_cyg_apt_rc
-    
-    h = open (cyg_apt_rc, 'w')
-    for i in rc_options:
-        h.write ('%s="%s"\n' % (i, __main__.__dict__[i]))
-    h.close ()
-    dists = 0
-    distnames = ('curr', 'test', 'prev')
 
-    installed = 0
-    if command == 'setup':
-        setup ()
-        sys.exit (0)
-
-    if command == 'update':
-        update ()
-        sys.exit (0)
+#    if command == 'setup':
+#        setup ()
+#        sys.exit (0)
+#
+#    if command == 'update':
+#        update ()
+#        sys.exit (0)
+    # Check for existence of Cygwin's package database and read it in,
+    # Unless executing commands to update/establish that database.
+    if ((command != 'setup') and (command != 'update')):
+        for i in (installed_db, setup_ini):
+            if not os.path.isfile (i):
+                usage ()
+                sys.stderr.write ('\n')
+                sys.stderr.write ('error: %s no such file\n' % i)
+                sys.stderr.write ('error: run cyg-apt setup?\n' % vars ())
+                sys.exit (2)
+        dists = 0
+        installed = 0
+        get_setup_ini ()
+        get_installed ()
     
-    for i in (installed_db, setup_ini):
-        if not os.path.isfile (i):
-            usage ()
-            sys.stderr.write ('\n')
-            sys.stderr.write ('error: %s no such file\n' % i)
-            sys.stderr.write ('error: run cyg-apt setup?\n' % vars ())
-            sys.exit (2)
-        
-    get_setup_ini ()
-    get_installed ()
-        
+    # Finished init: launch command to do the work
     if command and command in __main__.__dict__:
         __main__.__dict__[command] ()
         
