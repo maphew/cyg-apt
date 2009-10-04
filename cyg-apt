@@ -785,10 +785,9 @@ def main():
            
     HOME = os.environ['HOME']
     CWD = os.getcwd ()
-    ROOT = './'
+    ROOT = '/.'
     home_cyg_apt_rc = HOME + '/.' + basename
     cwd_cyg_apt_rc = CWD + '/.' + basename
-    pdb.set_trace()
     cygwin_p = os.uname ()[0][:6] == 'CYGWIN'
     
     config = ROOT + '/etc/setup'
@@ -893,7 +892,7 @@ def main():
             usage ()
             sys.stderr.write ('\n')
             sys.stderr.write ('error: %s no such file\n' % i)
-            sys.stderr.write ('error: run %(basename)s setup?\n' % vars ())
+            sys.stderr.write ('error: run cyg-apt setup?\n' % vars ())
             sys.exit (2)
         
     get_setup_ini ()
