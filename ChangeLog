@@ -118,7 +118,27 @@ Added a test for fixed cyg-apt url command.
 
 Revision 42
 -----------
+*Added a very basic test for buildrequires:
 
+The same tests as normal requires since there's very little difference in the Cygwin packaging system. I don't think the existing buildrequires code in cyg-apt is quite right: it looks for
+external-source in .ini package properties but it doesn't appear there, it appears in setup.hint: needs a fix and a better test. In practice external-source is rarely used.
+
+*Added mini_mirror support for the cyg-apt upgrade test: 
+
+mini_mirror now creates a 0.0.2-0 version of testpkg which contains a single additional file as a test marker: /etc/ver2_marker.
+
+* Added a test for upgrade:
+
+installs 0.0.1-0, patches the installed setup-2.ini to indicate 0.0.2-0 as the current version then attempts an upgrade: proper behaviour is the automatic uninstallation of 0.0.1-0 followed by installation of 0.0.2-0. Currently we only check for ver2_marker: a better test would also check for the non-existance of a 0.0.1-0 only file.
+
+* Fiddled with requires inplementation
+
+Use a less confusing list comprehension. I notice the implemenation isn't as efficent as it could be: packages have their requirements merged in to the dictionary multiple times.
+
+* Moved the setup-2.ini used in testing back to /etc/setup-2.ini until I get it sorted out.
+
+Revision 44
+-----------
 
 
 
