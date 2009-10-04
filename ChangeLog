@@ -151,7 +151,20 @@ Passes all the tests in the testsuite but this was such a disruptive change I ex
 Revision 45
 -----------
 
+Change "basename" to "scriptname" when referring to sys.argv[0] to avoid confusion with other uses of basename, and stop passing it around as global.
 
+Added "get_rc()" in line with get_installed() and get_setup(): localise configuration of cyg-apt from .cyg-apt into one function. This includes both reading values and (currently) expanding values by (for example) adding known path chunks.
+
+Rearrange Main: group the four main things it does:
+setting up constants
+parsing the rc
+command line overrides
+read in the cygwin package database
+
+Also: don't special case the launching of the update and setup commands: a simple if statement avoids reading in the package database in these cases. (Don't read packge db in: these commands don't count on it existing: setup (potentially creates a fresh empty db) while update overwrites setup.in.
+
+Revision 47
+-----------
 
 
 
