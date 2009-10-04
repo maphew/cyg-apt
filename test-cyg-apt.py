@@ -18,10 +18,12 @@ class TestCygApt(unittest.TestCase):
         self.relname = "release-2"
         self.cyg_apt_rc_file = ".cyg-apt"
         self.tarname = "testpkg-0.0.1-0.tar.bz2"
+        self.tarname_2 = "testpkg-0.0.2-0.tar.bz2"
         self.tarpath = "release-2/testpkg/"                
         self.sourcename = "testpkg-0.0.1-0"
         self.sourcemarker = "mini_mirror/testpkg/build/root/usr/bin/testpkg.exe"
         self.source_unpack_marker = "testpkg-0.0.1-0/usr/bin/testpkg.exe"
+        self.version_2_marker = "/etc/ver2_marker"
         self.pre_remove_marker = "/usr/share/doc/testpkg/README"
         self.post_remove_marker = "/usr/share/doc/testpkg"
         self.post_install_script = "/etc/postinstall/testpkg.sh"
@@ -33,6 +35,8 @@ class TestCygApt(unittest.TestCase):
         self.post_remove_script_done = "/etc/postremove/testpkg.sh.done"
         self.tarfile = "mini_mirror/testpkg/build/release-2/testpkg/" +\
             self.tarname
+        self.tarfile_2 = "mini_mirror/testpkg/build/release-2/testpkg/" +\
+            self.tarname_2
         self.init_from_dot_cyg_apt()
         self.expected_ballpath = "%s/%s/%s/%s/%s" % \
             (self.opts["cache"],\
@@ -163,6 +167,17 @@ class TestCygApt(unittest.TestCase):
             + self.package_name).split()
         self.assert_(self.package_name_2 in requiresout)
         
+        
+    def testbuildrequires(self):
+        # not a great test, but this isn't a great command IMO:
+        # there's little facility for separate source dependency tracking in
+        # Cygwin, or so it appears.
+        utilpack.popen("cyg-apt install " + self.package_name)       
+        requiresout = utilpack.popen("cyg-apt buildrequires "\
+            + self.package_name).split()
+        self.assert_(self.package_name_2 in requiresout)
+
+
     def testmissing(self):
         utilpack.popen("cyg-apt install " + self.package_name)
         utilpack.popen("cyg-apt remove " + self.package_name_2)
@@ -170,7 +185,8 @@ class TestCygApt(unittest.TestCase):
             + self.package_name).split()
         self.assert_(self.package_name_2 in missingout)
         
-    def testnew(self):
+    def new_upgrade_test_setup(self, upgrade):
+        utilpack.popen("cyg-apt install " + self.package_name)
         setup_ini = self.opts["setup_ini"]
         setup_ini_basename_diff = os.path.basename(setup_ini) + ".diff"
         os.system("/usr/bin/cp " + setup_ini + " " + setup_ini + ".save")
@@ -182,11 +198,43 @@ class TestCygApt(unittest.TestCase):
         #setup_ini_diff_make.py setup-2.ini testpkg install tarver --field-input testpkg-0.0.1-0.tar.bz2 0.0.1-0 0.0.2-0
         os.system(cmd)
         os.system("patch " + setup_ini + " " + setup_ini_basename_diff)
-        newout = utilpack.popen("cyg-apt new")
+        
+        if (upgrade):
+            cmd = "tools/setup_ini_diff_make.py "
+            cmd += setup_ini + " "
+            cmd += self.package_name + " "
+            cmd += "install md5 --field-input "
+            cmd += self.tarfile_2
+            os.system(cmd)
+            os.system("patch " + setup_ini + " " + setup_ini_basename_diff)
+
+        
+        
+    def new_upgrade_test_cleanup(self):
+        utilpack.popen("cyg-apt remove " + self.package_name) 
+        setup_ini = self.opts["setup_ini"]
+        setup_ini_basename_diff = os.path.basename(setup_ini) + ".diff"
         os.system("/usr/bin/mv " + setup_ini + ".save" + " " + setup_ini)
         os.system("/usr/bin/rm " + setup_ini_basename_diff)
+        # It's a problem depending on cyg-apt to clean up after these tests
+        #utilpack.popen("cyg-apt remove " + self.package_name)
+        
+
+    def testnew(self):
+        self.new_upgrade_test_setup(False)
+        newout = utilpack.popen("cyg-apt new")
+        self.new_upgrade_test_cleanup()
         self.assert_(self.package_name in newout)
         
+        
+    def testupgrade(self):
+        self.new_upgrade_test_setup(True)
+        upgradeout = utilpack.popen("cyg-apt upgrade")
+        self.assert_fyes(self.version_2_marker)
+        self.new_upgrade_test_cleanup()
+  
+
+
     def testshow(self):
         utilpack.popen("cyg-apt install " + self.package_name)
         showout = utilpack.popen("cyg-apt show " + self.package_name)

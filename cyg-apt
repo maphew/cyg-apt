@@ -365,9 +365,14 @@ def get_requires():
             p = dist[i]
             if not p.has_key ('requires'):
                 continue
-            reqs.update (dict (map (lambda x: (x, 0),
-                        string.split (p['requires']))))
-    return reqs.keys ()
+            #reqs.update (dict (map (lambda x: (x, 0),
+            #            string.split (p['requires']))))
+            # I find the original form less clear
+            update_list = [(x,0) for x in string.split(p['requires'])]
+            reqs.update(update_list)
+    rlist = reqs.keys()
+    rlist.sort()
+    return rlist
 
 def requires ():
     '''print requires: for package'''

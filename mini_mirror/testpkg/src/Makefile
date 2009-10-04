@@ -9,7 +9,12 @@ all:
 	/usr/bin/cp postremove-testpkg.sh $(BUILDDIR)/root/etc/postremove/testpkg.sh
 	cd $(BUILDDIR)/root ; pwd ; tar --exclude=".svn" -jcf $(TARFILE) *;\
 cp $(TARFILE) ../release-2/testpkg;\
-mv $(TARFILE) ../release-2/testpkg/testpkg-0.0.1-0-src.tar.bz2
+cp $(TARFILE) ../release-2/testpkg/testpkg-0.0.1-0-src.tar.bz2;\
+cd ../../src;\
+/usr/bin/cp ver2_marker $(BUILDDIR)/root/etc/;\
+cd $(BUILDDIR)/root ; pwd ; tar --exclude=".svn" -jcf $(TARFILE) *;\
+cp $(TARFILE) ../release-2/testpkg/testpkg-0.0.2-0.tar.bz2;\
+/usr/bin/rm -rf $(TARFILE)
 	cp ../../setup-2.ini ../build
 	/usr/bin/cp setup.hint $(BUILDDIR)/release-2/testpkg
 	$(TOOLS)md5.sum.py -f ../build/release-2/testpkg/ ../build/release-2/testpkg/md5.sum
@@ -26,6 +31,7 @@ mv $(TARFILE) ../release-2/testpkg/testpkg-0.0.1-0-src.tar.bz2
 	/usr/bin/rm -rf testpkg-0.0.1-0-src.tar.bz2.diff
 	/usr/bin/rm -rf setup-2.ini.diff
 	/usr/bin/rm -rf testpkg-0.0.1-0.tar.bz2.diff	
+
 
 clean:
 	/usr/bin/rm -f ../build/release-2/testpkg/*

@@ -1,5 +1,5 @@
 ROOT="/."
 mirror="http://wanda/~chrisc"
 cache="local_cache"
-setup_ini="mini_mirror/setup-2.ini"
+setup_ini="/etc/setup/setup-2.ini"
 distname="curr"
