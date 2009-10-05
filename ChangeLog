@@ -187,6 +187,20 @@ Note -- this new model is quite different from the old one: now a complete .cyg-
 Revision 50
 -----------
 
+Fix the ROOT problem: previously the global ROOT was being applied both as an absolute directory e.g. "tar -C ROOT" and as a path prefix ie:
+ROOT + /etc/setup/setup.ini
+One constant can't fufill both roles well: to have "/" as root (ie the usual case) you have to use "/." to avoid ROOT + /etc/setup/setup.ini becoming "//etc/setup/setup.ini". Using paths like "etc/setup/setup.ini" are a trap for new developers.
+
+The solution is to have two forms of ROOT: PREFIX_ROOT "" and ABSOLUTE_ROOT "/" which expands well to "/e/home/some/dir/" and "/e/home/some/dir" for a non-null root, not that we expect to be using this since running cyg-apt outside Cygwin is not a (tested) release target at this stage.
+
+Change .cyg-apt to take advantage of the more sensible "/" root.
+
+No test for setup yet.
+
+Revision 51
+-----------
+
+
 
 
 

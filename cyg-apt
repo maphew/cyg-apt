@@ -17,6 +17,7 @@ import string
 import sys
 import pdb
 import tarfile
+from pdb import set_trace as st
 #urg
 plist = list
     
@@ -509,7 +510,7 @@ def do_install ():
     # untar capture list
     # tarfile
 
-    pipe = os.popen ('tar -C "%s" -xjvf "%s"' % (ROOT, ball), 'r')
+    pipe = os.popen ('tar -C "%s" -xjvf "%s"' % (ABSOLUTE_ROOT, ball), 'r')
     lst = map (string.strip, pipe.readlines ())
     if pipe.close ():
         raise 'urg'
@@ -567,20 +568,23 @@ def uninstall_want_file_removed(file, postremove, nowarns):
    
              
 def do_uninstall ():
-    try_run_script (ROOT + '/etc/preremove/%s.sh' % packagename)    
-    postremove = ROOT + '/etc/postremove/%s.sh' % packagename
+    global PREFIX_ROOT
+    global ABSOLUTE_ROOT
+    
+    try_run_script (PREFIX_ROOT + '/etc/preremove/%s.sh' % packagename)    
+    postremove = PREFIX_ROOT + '/etc/postremove/%s.sh' % packagename
     # get file list
     lst = get_filelist ()
     
     # We don't expect these to be present: they are executed 
     # and moved to $(packagename).sh.done
     nowarns = []
-    nowarns.append(ROOT + "/etc/postinstall/" + packagename + ".sh")
-    nowarns.append(ROOT + "/etc/preremove/" + packagename + ".sh")
+    nowarns.append(PREFIX_ROOT + "/etc/postinstall/" + packagename + ".sh")
+    nowarns.append(PREFIX_ROOT + "/etc/preremove/" + packagename + ".sh")
     
     # remove files
     for i in lst:
-        file = os.path.join (ROOT, i)
+        file = os.path.join (ABSOLUTE_ROOT, i)
         if (uninstall_want_file_removed(file, postremove, nowarns)):
             if os.remove (file):
                 raise 'urg'
@@ -619,10 +623,13 @@ def purge ():
     '''purge package'''
     remove()
     global packagename
+    global PREFIX_ROOT
+    global ABSOLUTE_ROOT
+        
     for packagename in files[1:]:
-        scripts = [ROOT + '/etc/postinstall/%s.sh' % packagename + ".done",
-        ROOT + '/etc/preremove/%s.sh' % packagename + ".done",
-        ROOT + '/etc/postremove/%s.sh' % packagename + ".done"]
+        scripts = [PREFIX_ROOT + '/etc/postinstall/%s.sh' % packagename + ".done",
+        PREFIX_ROOT + '/etc/preremove/%s.sh' % packagename + ".done",
+        PREFIX_ROOT + '/etc/postremove/%s.sh' % packagename + ".done"]
         for s in scripts:
             if os.path.exists(s):
                 os.remove(s)
@@ -658,7 +665,7 @@ def install ():
                   % (packagename,
                      version_to_string (get_version ())))
         do_install ()
-    run_all (ROOT + '/etc/postinstall')
+    run_all (PREFIX_ROOT + '/etc/postinstall')
 
 
 def upgrade ():
@@ -692,9 +699,12 @@ def setup ():
     global ROOT
     global setup_ini
     global config
+    global PREFIX_ROOT
+    global ABSOLUTE_ROOT
     
-    ROOT = "/."
-    config = ROOT + '/etc/setup'
+    ROOT = "/"
+    set_root(ROOT)
+    config = PREFIX_ROOT + '/etc/setup'
     installed_db = config + '/installed.db'
     missing_cache_marker = ""
     missing_mirror_marker = ""
@@ -722,10 +732,9 @@ def setup ():
         h.close() 
     else:
         print "%s: %s exists; not overrwriting." % (scriptname, cyg_apt_rc)
-    # Move to .rc?
 
-    if not os.path.isdir (ROOT):
-        sys.stderr.write ('error: %s no root dir\n' % ROOT)
+    if not os.path.isdir (ABSOLUTE_ROOT):
+        sys.stderr.write ('error: %s no root dir\n' % ABSOLUTE_ROOT)
         sys.exit (2)
     if not os.path.isdir (config):
         sys.stderr.write ('creating %s\n' % config)
@@ -753,7 +762,7 @@ def do_unpack ():
     packagename = re.sub ('(-src)*\.tar\.(bz2|gz)', '', basename)
     SRC = packagename
     if os.path.exists(packagename):
-        printerr("./" + packagename + " already exists. Not overwriting.\n")
+        printerr(packagename + " already exists. Not overwriting.\n")
         return 1       
     os.system("mkdir " + packagename)
     pipe = os.popen ('tar -C "%s" -xjvf "%s"' % (packagename, ball), 'r')
@@ -762,7 +771,7 @@ def do_unpack ():
         raise 'urg1'
     if not os.path.exists (packagename):
         raise 'urg2'
-    print "./" + packagename
+    print packagename
               
           
 def source ():
@@ -815,6 +824,20 @@ def usage():
         ''' % d)
 
 
+def set_root(root):
+    global PREFIX_ROOT
+    global ABSOLUTE_ROOT
+    global scriptname
+    global cyg_apt_rc
+    
+    if len(root) < 1 or root[-1] != "/":
+        print "%s: ROOT in %s must end in a slash. Exiting." %\
+        (scriptname, cyg_apt_rc)
+        sys.exit(1)
+    PREFIX_ROOT = root[:-1]
+    ABSOLUTE_ROOT = root
+
+
 def get_rc(h):
     global cache
     global mirror
@@ -829,20 +852,14 @@ def get_rc(h):
     global download_p
     global installed_db_magic
     global packagename
-    #global basename
     global distnames
-    global ROOT
     global rc_options
     global cygwin_p
     global cyg_apt_rc
     global scriptname
-    
-    # Configuration hardcoded then overrridden by .cyg-apt
-    ROOT = '/.'
-    config = ROOT + '/etc/setup'
-    setup_ini = config + '/setup-2.ini'
-    distname = 'curr'
-    
+    global PREFIX_ROOT
+    global ABSOLUTE_ROOT
+    global ROOT
 
     for i in h.readlines ():
         k, v = i.split ('=', 2)
@@ -858,7 +875,12 @@ def get_rc(h):
         sys.exit(1)
     
     # Some values are derived from .cyg-apt
-    config = ROOT + '/etc/setup'    
+    
+    # We want ROOT + "/etc/setup" and cd(ROOT) to work: 
+    # necessitates two different forms, prefix and absolute
+    set_root(ROOT)
+    ROOT = None
+    config = PREFIX_ROOT + '/etc/setup'    
     downloads = cache + '/' + urllib.quote (mirror, '').lower ()
     installed_db = config + '/installed.db'
     return 0
@@ -879,13 +901,14 @@ def main():
     global installed_db_magic
     global packagename
     global distnames
-    global ROOT
     global setup_ini
     global rc_options
     global cyg_apt_rc
     global cygwin_p
     global home_cyg_apt_rc
     global scriptname
+    global PREFIX_ROOT
+    global ABSOLUTE_ROOT
 
     # Define constants
     installed_db_magic = 'INSTALLED.DB 2\n'
@@ -899,7 +922,7 @@ def main():
     
     # Don't depend on harcoded values for now: must provide .cyg-apt
     # mirror = "/local_mirror"
-    # cache = ROOT + '/e/home/application_data/cygwin_1_7' 
+    # cache = PREFIX_ROOT + '/e/home/application_data/cygwin_1_7' 
     # downloads = cache + '/' + urllib.quote (mirror, '').lower ()       
     
     # Take our configuration from .cyg-apt 
@@ -915,6 +938,9 @@ def main():
     if cyg_apt_rc:            
         # Take our configuration from .cyg-apt
         h = open(cyg_apt_rc)
+        
+        # Configuration is now solely controlled byt .cyg-apt
+        # (With command line overrides, if any applied later)
         get_rc(h)
     elif (sys.argv[1] != "setup"):
         print "cyg-apt: no .cyg-apt: run cyg-apt setup to create. Exiting."
@@ -953,9 +979,9 @@ def main():
             mirror = a
             downloads = cache + '/' + urllib.quote (mirror, '').lower ()
         elif o == '--root' or o == '-r':
-            ROOT = a
-            config = ROOT + '/etc/setup'
-            cache = ROOT + '/var/cache/setup'
+            set_root(a)
+            config = PREFIX_ROOT + '/etc/setup'
+            cache = PREFIX_ROOT + '/var/cache/setup'
             setup_ini = config + '/setup-2.ini'
             installed_db = config + '/installed.db'
             downloads = cache + '/' + urllib.quote (mirror, '').lower ()

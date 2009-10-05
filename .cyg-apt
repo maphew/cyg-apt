@@ -1,4 +1,4 @@
-ROOT="/."
+ROOT="/"
 mirror="http://wanda/~chrisc"
 cache="local_cache"
 setup_ini="/etc/setup/setup-2.ini"
