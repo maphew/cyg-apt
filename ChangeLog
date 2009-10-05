@@ -174,6 +174,21 @@ Add ability to create .cyg-apt from hardcoded constants to setup() and warnings 
 Revision 49
 -----------
 
+Added get_setup_rc(location): reads the Cygwin package database .rc located at /etc/setup/setup.rc and takes last-cache and last-mirror as (sensible) defaults for a new .cyg-apt. Big advtange of this is that new users can now run cyg-apt setup and expect the next command to work (using the last mirror / package cache they accessed using setup.exe.
+
+Added warnings to setup() if /etc/seutp.rc is not found and empty-string default values for mirror and package cache for this case. I expect this case to be rare in practice.
+
+Added verison detection: 1.7 currently uses setup-2.ini not setup.ini: good to pick this up as a default for a fresh .cyg-apt. Will need to remove this once 1.7 moves back to setup.ini
+
+Added sanity check get_rc: if cache or mirror is not defined print an informative error message and exit.
+
+Note -- this new model is quite different from the old one: now a complete .cyg-apt is always required: command line arguments are *strictly overrides* to this initial requirement. It also means you have to create .cyg-apt before running .cyg-apt or (much more common) let cyg-apt setup create one for you.
+
+Revision 50
+-----------
+
+
+
 
 
 
