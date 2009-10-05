@@ -166,6 +166,13 @@ Also: don't special case the launching of the update and setup commands: a simpl
 Revision 47
 -----------
 
+Moved determing if .cyg-apt exists and if so which one to use back to main. get_rc() and setup() both use this info: get_rc to read in .cyg-apt and setup as an indicator of whether it should create .cyg-apt or not.
+
+Add ability to create .cyg-apt from hardcoded constants to setup() and warnings if setup() is invoked with an existing .cyg-apt: refuses to overwrite.
+
+
+Revision 49
+-----------
 
 
 

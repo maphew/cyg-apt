@@ -670,7 +670,32 @@ def upgrade ():
 def setup ():
     '''cygwin environment'''
     global installed
+    global cyg_apt_rc
+    global home_cyg_apt_rc
+    global rc_options
+    global scriptname
+    global ROOT
+    global setup_ini
+    global config
     
+    if not cyg_apt_rc:
+        cyg_apt_rc = home_cyg_apt_rc
+        print "%s: creating %s from defaults." % (scriptname, cyg_apt_rc)
+        ROOT = "/."
+        mirror = "http://wanda/~chrisc"
+        cache = "local_cache"
+        setup_ini = "/etc/setup/setup-2.ini"
+        distname = "curr"
+        h = open(cyg_apt_rc,"w")
+        for i in rc_options:
+            h.write('%s="%s"\n' % (i, eval(i)))
+        h.close() 
+    else:
+        print "%s: %s exists; not overrwriting." % (scriptname, cyg_apt_rc)
+    # Move to .rc?
+    config = ROOT + '/etc/setup'
+    installed_db = config + '/installed.db'
+        
     if not os.path.isdir (ROOT):
         sys.stderr.write ('error: %s no root dir\n' % ROOT)
         sys.exit (2)
@@ -684,6 +709,8 @@ def setup ():
     if not os.path.isfile (setup_ini):
         sys.stderr.write ('getting %s\n' % setup_ini)
         update ()
+    
+
 
 
 def printerr(err):
@@ -760,7 +787,7 @@ def usage():
         ''' % d)
 
 
-def get_rc():
+def get_rc(h):
     global cache
     global mirror
     global downloads
@@ -780,37 +807,18 @@ def get_rc():
     global rc_options
     global cygwin_p
     
-    # Fetch basic configuration from the OS
-    scriptname = os.path.basename (sys.argv[0])           
-    HOME = os.environ['HOME']
-    CWD = os.getcwd ()
-    cygwin_p = os.uname ()[0][:6] == 'CYGWIN'
-    
     # Configuration hardcoded then overrridden by .cyg-apt
     ROOT = '/.'
     config = ROOT + '/etc/setup'
     setup_ini = config + '/setup-2.ini'
     distname = 'curr'
     
-    # Don't depend on harcoded values for now: must provide .cyg-apt
-    # mirror = "/local_mirror"
-    # cache = ROOT + '/e/home/application_data/cygwin_1_7' 
-    # downloads = cache + '/' + urllib.quote (mirror, '').lower ()       
-    
-    # Take our configuration from .cyg-apt      
-    h = 0
-    home_cyg_apt_rc = HOME + '/.' + scriptname
-    cwd_cyg_apt_rc = CWD + '/.' + scriptname
-    if os.path.exists (cwd_cyg_apt_rc):
-        h = open (cwd_cyg_apt_rc)
-    elif os.path.exists (home_cyg_apt_rc):
-        h = open (home_cyg_apt_rc)
-    if h:
-        for i in h.readlines ():
-            k, v = i.split ('=', 2)
-            if k in rc_options:
-                __main__.__dict__[k] = eval (v)
-        h.close ()
+
+    for i in h.readlines ():
+        k, v = i.split ('=', 2)
+        if k in rc_options:
+            __main__.__dict__[k] = eval (v)
+    h.close ()
     
     # Some values are derived from .cyg-apt
     config = ROOT + '/etc/setup'    
@@ -836,15 +844,43 @@ def main():
     global ROOT
     global setup_ini
     global rc_options
+    global cyg_apt_rc
+    global cygwin_p
+    global home_cyg_apt_rc
+    global scriptname
 
     # Define constants
     installed_db_magic = 'INSTALLED.DB 2\n'
     INSTALL = 'install'
     rc_options = ['ROOT', 'mirror', 'cache', 'setup_ini', 'distname']
     distnames = ('curr', 'test', 'prev')
-            
-    # Take our configuration from .cyg-apt
-    get_rc()
+    
+    # Fetch basic configuration from the OS
+    scriptname = os.path.basename (sys.argv[0])           
+    cygwin_p = os.uname ()[0][:6] == 'CYGWIN'
+    
+    # Don't depend on harcoded values for now: must provide .cyg-apt
+    # mirror = "/local_mirror"
+    # cache = ROOT + '/e/home/application_data/cygwin_1_7' 
+    # downloads = cache + '/' + urllib.quote (mirror, '').lower ()       
+    
+    # Take our configuration from .cyg-apt 
+    # preferring cwd .cyg-apt
+    h = 0
+    cyg_apt_rc = None
+    home_cyg_apt_rc = os.environ['HOME'] + '/.' + scriptname
+    cwd_cyg_apt_rc = os.getcwd () + '/.' + scriptname
+    if os.path.exists (cwd_cyg_apt_rc):
+        cyg_apt_rc = home_cyg_apt_rc = cwd_cyg_apt_rc
+    elif os.path.exists (home_cyg_apt_rc):
+        cyg_apt_rc = home_cyg_apt_rc    
+    if cyg_apt_rc:            
+        # Take our configuration from .cyg-apt
+        h = open(cyg_apt_rc)
+        get_rc(h)
+    elif (sys.argv[1] != "setup"):
+        print "cyg-apt: no .cyg-apt: run cyg-apt setup to create. Exiting."
+        sys.exit(1)
     
     # Override one or more configuration elements if on the command line
     (options, files) = getopt.getopt (sys.argv[1:],
