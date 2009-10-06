@@ -200,7 +200,12 @@ No test for setup yet.
 Revision 51
 -----------
 
+Added a test for cyg-apt setup: removes .cyg-apt in cwd and HOME, calls cyg-apt setup and checks the mirror and cache match Cygwin's setup.rc. Then restores .cyg-apt as required.
 
+Fixed TestCygApt.testlist: broke up the horrible regex into three bite-sized regexes, adding a regex to match on the new version available field when it is present.
+
+Revision 52
+-----------
 
 
 

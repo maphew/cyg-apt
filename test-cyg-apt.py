@@ -9,6 +9,9 @@ import sys
 import tarfile
 import re
 import md5
+from pdb import set_trace as st
+import shutil
+
 
 class TestCygApt(unittest.TestCase):
 
@@ -46,8 +49,35 @@ class TestCygApt(unittest.TestCase):
             self.package_name,\
             self.tarname)
         self.ver = "0.0.1-0"
-
             
+        setup_rc_filename  = "/etc/setup/setup.rc"
+        if not (os.path.exists(setup_rc_filename)):
+            print "Can't test with missing /etc/setup/setup.rc"
+            raise "urg"
+        setup_rc = file(setup_rc_filename).readlines()
+        last_cache = None
+        last_mirror = None
+        for i in range(0, (len(setup_rc) -1)):
+            if "last-cache" in setup_rc[i]:
+                last_cache = setup_rc[i+1].strip()
+            if "last-mirror" in setup_rc[i]:
+                last_mirror = setup_rc[i+1].strip()
+        last_cache = os.popen("cygpath -au \"" + last_cache + "\"").read().strip()
+        self.last_cache = last_cache
+        self.last_mirror = last_mirror
+
+        self.cwd_cyg_apt = ".cyg-apt" 
+        self.home_cyg_apt = os.environ['HOME'] + "/.cyg-apt"            
+            
+        if os.path.exists(self.cwd_cyg_apt):
+            self.cwd_cyg_apt_bak = self.cwd_cyg_apt + ".bak"        
+            os.system("cp %s %s" % (self.cwd_cyg_apt, self.cwd_cyg_apt_bak))
+        else:
+            self.cwd_cyg_apt = None
+        if os.path.exists(self.home_cyg_apt):
+            self.home_cyg_apt_bak = self.home_cyg_apt + ".bak"
+            os.system("cp %s %s" % (self.home_cyg_apt, self.home_cyg_apt_bak))
+
     def init_from_dot_cyg_apt(self):
         self.opts = {}
         rc = file(self.cyg_apt_rc_file).readlines()
@@ -56,6 +86,32 @@ class TestCygApt(unittest.TestCase):
             self.opts[k] = eval (v)
         self.mirror_esc = urllib.quote(self.opts["mirror"], "").lower()
 
+
+    def testsetup(self):
+        if os.path.exists(self.cwd_cyg_apt):        
+            self.assert_fyes(self.cwd_cyg_apt_bak)
+            os.system("rm %s" % self.cwd_cyg_apt)
+        if os.path.exists(self.home_cyg_apt):            
+            self.assert_fyes(self.home_cyg_apt_bak)
+            os.system("rm %s" % self.home_cyg_apt)
+        setup_out = utilpack.popen("cyg-apt setup")
+        self.assert_fyes(self.home_cyg_apt)
+        cyg_apt_rc = file(self.home_cyg_apt, "r").readlines()
+        rc_dict = {}
+        for l in cyg_apt_rc:
+            k, v = l.split ('=', 2)
+            rc_dict[k] = eval(v)
+        self.assert_(rc_dict["mirror"] == self.last_mirror)
+        self.assert_(rc_dict["cache"] == self.last_cache)
+        if os.path.exists(self.cwd_cyg_apt_bak):
+            out = utilpack.popen("cp %s %s" % (self.cwd_cyg_apt_bak, self.cwd_cyg_apt))
+            if not out:
+                os.system("rm %s" % self.cwd_cyg_apt_bak)
+        if os.path.exists(self.home_cyg_apt_bak):
+            out = utilpack.popen("cp %s %s" % (self.home_cyg_apt_bak, self.home_cyg_apt))
+            if not out:
+                os.system("rm %s" % self.home_cyg_apt_bak)
+    
     
     def testball(self):
         ballpath = utilpack.popen("cyg-apt ball " + self.package_name)
@@ -127,25 +183,34 @@ class TestCygApt(unittest.TestCase):
             self.assert_(False)
             
     def testlist(self):
-        exp = re.compile("^([\w\-.]+)(\W+)([0-9a-z.-]+)$")
+        regexes = {}
+        regexes[0] = re.compile("([\w\-.]+)")
+        regexes[1] = re.compile("([0-9a-z.-]+)")
+        regexes[2] = re.compile("(\([\w.-]+\))")
+        
         utilpack.popen("cyg-apt install " + self.package_name)
         listout = utilpack.popen("cyg-apt list")
-
         listout = listout.split("\n")
         listout = [x.strip() for x in listout if x.strip()   != ""]
-        found_name = None
-        found_var = None
+        found_names = []
+        found_vers = []
         for l in listout:
-            groups = exp.search(l)
-            if groups:
-                name = groups.group(1)
-                if name == self.package_name:
-                    found_name = name
-                    found_ver = groups.group(3)
-            else:
-                self.assert_(False)
-        self.assert_(found_name and found_ver)
-        self.assert_(found_ver == self.ver)
+            items = l.split()
+            self.assert_(2 <= len(items) <= 3)
+            for i in range(len(items)):            
+                match = regexes[i].search(items[i])
+                if match:
+                    found = match.groups()[0]
+                    if (i == 0):
+                        found_names.append(found)
+                    elif (i == 1):
+                        found_vers.append(found)
+                else:
+                    print "Problem cyg-apt list line :"
+                    print l
+                    self.assert_(False)
+        self.assert_(self.package_name in found_names)
+        self.assert_(self.ver in found_vers)
         
         
     def testmd5(self):
@@ -306,10 +371,7 @@ class TestCygApt(unittest.TestCase):
         # ever present (or perhaps it was purged)
         self.assert_fyes(self.pre_remove_script_done)
         self.assert_fyes(self.post_remove_script_done) 
-        
-        
-        
-        #self.assert_(0)
+
    
     def assert_fyes(self, f):
             self.assert_(os.path.exists(f) is True)
