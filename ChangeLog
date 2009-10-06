@@ -207,6 +207,14 @@ Fixed TestCygApt.testlist: broke up the horrible regex into three bite-sized reg
 Revision 52
 -----------
 
+Now run the testsetup cleanup code always, even if an exception is thrown (important given we're moving the developer's cyg-apt files around during testing.
+
+Changed testinstall_remove to call core do_testinstalll_remove for the actual tests: this allows this testing code to be shared between testinstall_remove and testcommandline.
+
+Added testcommandline: it has a fairly heavyweight test for --cache= option: it actually copies the whole (testing) package cache to a new directory and confirms we can remove/install the testpkg. Has always-cleanup behaviour as per testsetup (see above)
+
+Revision 53
+-----------
 
 
 

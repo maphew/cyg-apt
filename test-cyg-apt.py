@@ -87,13 +87,7 @@ class TestCygApt(unittest.TestCase):
         self.mirror_esc = urllib.quote(self.opts["mirror"], "").lower()
 
 
-    def testsetup(self):
-        if os.path.exists(self.cwd_cyg_apt):        
-            self.assert_fyes(self.cwd_cyg_apt_bak)
-            os.system("rm %s" % self.cwd_cyg_apt)
-        if os.path.exists(self.home_cyg_apt):            
-            self.assert_fyes(self.home_cyg_apt_bak)
-            os.system("rm %s" % self.home_cyg_apt)
+    def do_testsetup(self):
         setup_out = utilpack.popen("cyg-apt setup")
         self.assert_fyes(self.home_cyg_apt)
         cyg_apt_rc = file(self.home_cyg_apt, "r").readlines()
@@ -103,14 +97,26 @@ class TestCygApt(unittest.TestCase):
             rc_dict[k] = eval(v)
         self.assert_(rc_dict["mirror"] == self.last_mirror)
         self.assert_(rc_dict["cache"] == self.last_cache)
-        if os.path.exists(self.cwd_cyg_apt_bak):
-            out = utilpack.popen("cp %s %s" % (self.cwd_cyg_apt_bak, self.cwd_cyg_apt))
-            if not out:
-                os.system("rm %s" % self.cwd_cyg_apt_bak)
-        if os.path.exists(self.home_cyg_apt_bak):
-            out = utilpack.popen("cp %s %s" % (self.home_cyg_apt_bak, self.home_cyg_apt))
-            if not out:
-                os.system("rm %s" % self.home_cyg_apt_bak)
+
+
+    def testsetup(self):
+        if os.path.exists(self.cwd_cyg_apt):        
+            self.assert_fyes(self.cwd_cyg_apt_bak)
+            os.system("rm %s" % self.cwd_cyg_apt)
+        if os.path.exists(self.home_cyg_apt):            
+            self.assert_fyes(self.home_cyg_apt_bak)
+            os.system("rm %s" % self.home_cyg_apt)
+        try:
+            self.do_testsetup()
+        finally:
+            if os.path.exists(self.cwd_cyg_apt_bak):
+                out = utilpack.popen("cp %s %s" % (self.cwd_cyg_apt_bak, self.cwd_cyg_apt))
+                if not out:
+                    os.system("rm %s" % self.cwd_cyg_apt_bak)
+            if os.path.exists(self.home_cyg_apt_bak):
+                out = utilpack.popen("cp %s %s" % (self.home_cyg_apt_bak, self.home_cyg_apt))
+                if not out:
+                    os.system("rm %s" % self.home_cyg_apt_bak)
     
     
     def testball(self):
@@ -358,12 +364,12 @@ class TestCygApt(unittest.TestCase):
         self.assert_fno(self.post_remove_script_done)
     
 
-    def testinstall_remove(self):
-        os.system("cyg-apt remove " + self.package_name);
+    def do_install_remove_test(self, command_line=""):
+        os.system("cyg-apt %s remove %s" % (command_line, self.package_name))
         self.confirm_remove_clean(self.package_name)
-        os.system("cyg-apt install " + self.package_name);
-        self.confirm_installed(self.package_name);
-        os.system("cyg-apt remove " + self.package_name);
+        os.system("cyg-apt %s install %s" % (command_line, self.package_name))
+        self.confirm_installed(self.package_name)
+        os.system("cyg-apt %s remove %s" % (command_line, self.package_name))
         self.confirm_remove_clean(self.package_name)
         # At the end of this sequence we can expect scripts to reflect
         # the "freshly removed" state. Note we can't expect that after
@@ -372,7 +378,23 @@ class TestCygApt(unittest.TestCase):
         self.assert_fyes(self.pre_remove_script_done)
         self.assert_fyes(self.post_remove_script_done) 
 
-   
+        
+    def testinstall_remove(self):
+        self.do_install_remove_test()
+
+    
+    def testcommandline(self):
+        os.system("cp -rf %s %s" % (self.opts["cache"], "package_cache_copy"))
+        os.system("mv %s %s" %\
+        (self.opts["cache"], self.opts["cache"] + ".bak"))
+        try:
+            self.do_install_remove_test("--cache=package_cache_copy")
+        finally:
+            os.system("mv %s %s" %\
+            (self.opts["cache"] + ".bak", self.opts["cache"]))
+            if os.path.exists(self.opts["cache"]):
+                os.system("rm -rf package_cache_copy")
+    
     def assert_fyes(self, f):
             self.assert_(os.path.exists(f) is True)
     
@@ -397,7 +419,7 @@ class TestCygApt(unittest.TestCase):
     def confirm_remove_clean(self, package):
         """ Confirms that no files or configuration file state exists for a package that has been subject to cyg-apt remove. """
         
-        self.tar_do(self.tarfile, self.assert_fno)    
+        self.tar_do(self.tarfile, self.assert_fno)
             
         # Next confirm that the filelist file is gone
         # Not the original cyg-apt behaviour but setup.exe removes
