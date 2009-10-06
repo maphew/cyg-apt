@@ -304,7 +304,8 @@ class TestCygApt(unittest.TestCase):
         self.assert_fyes(self.version_2_marker)
         self.new_upgrade_test_cleanup()
   
-    def testupdate(self):
+  
+    def do_testupdate(self, command_line=""):
         setup_ini = self.opts["setup_ini"]
         setup_ini_basename_diff = os.path.basename(setup_ini) + ".diff"
         cmd = "tools/setup_ini_diff_make.py "
@@ -313,17 +314,17 @@ class TestCygApt(unittest.TestCase):
         cmd += "install tarver --field-input "
         cmd += self.tarname + " 0.0.1-0 0.0.2-0"
         os.system(cmd)
-        os.system("patch " + setup_ini + " " + setup_ini_basename_diff)
-
-        
-        upgradeout = utilpack.popen("cyg-apt update")
+        update = utilpack.popen("cyg-apt update")
         diffout = utilpack.popen\
         (\
             "diff " + self.opts["setup_ini"] + " " +\
             self.build_setup_ini
         )
-        self.assert_(diffout == "")
-            
+        self.assert_(diffout == "")    
+    
+    
+    def testupdate(self):
+        self.do_testupdate()
 
 
     def testshow(self):
@@ -384,6 +385,8 @@ class TestCygApt(unittest.TestCase):
 
     
     def testcommandline(self):
+    
+        # Test --cache
         os.system("cp -rf %s %s" % (self.opts["cache"], "package_cache_copy"))
         os.system("mv %s %s" %\
         (self.opts["cache"], self.opts["cache"] + ".bak"))
@@ -394,6 +397,12 @@ class TestCygApt(unittest.TestCase):
             (self.opts["cache"] + ".bak", self.opts["cache"]))
             if os.path.exists(self.opts["cache"]):
                 os.system("rm -rf package_cache_copy")
+                
+        # Test --mirror
+        update_out = utilpack.popen("cyg-apt --mirror=bad update",1)
+        self.assert_("Resolving bad... failed" in update_out)
+        self.do_testupdate(command_line="--mirror=%s" % self.opts["mirror"])
+        
     
     def assert_fyes(self, f):
             self.assert_(os.path.exists(f) is True)

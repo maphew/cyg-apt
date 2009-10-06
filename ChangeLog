@@ -216,6 +216,14 @@ Added testcommandline: it has a fairly heavyweight test for --cache= option: it 
 Revision 53
 -----------
 
+Created a do_testupdate function so the test can be shared by testcommandline, which now has a --mirror test: test giving cyg-apt a bad mirror fails properly and test performing an update (of setup.ini) with a command-line provided mirror. The idea is the bad mirror test shows the command line argument is being used and the second test shows it is being used properly: a relatively lightweight test in terms of complexity but unfortunately the bad mirror test takes a few seconds to timeout and it all adds up: the tests now take quite a while to run.
+
+Added utilpack to the tools: some handy routines, currently in the domain of IPC and filesystem queries. (Fancy names for popen and recursive find :) )
+
+
+Revision 54
+-------------
+
 
 
 
