@@ -8,6 +8,7 @@ import string
 from utilpack import path
 from subprocess import Popen
 from subprocess import PIPE
+from pdb import set_trace as st
 
 
 def popen(cmd):
@@ -20,7 +21,7 @@ def error (msg):
     
 
 
-def find_line(inifile, packagename, section):
+def find_line(inifile, packagename, section, option):
     ini = file(inifile).readlines()
     tpmarkerlen= len(packagename) + 2
     ln = 0
@@ -34,10 +35,26 @@ def find_line(inifile, packagename, section):
     if not found:
         error("urg")
         return None
-    
+        
     endln = len(ini)
+    if section != "curr":
+        found = False
+        while ln < endln:
+            if ini[ln].strip() == "":
+                raise(sys.argv[0] + ": out of section! Exiting.")
+            if "[" + section + "]" in ini[ln]:
+                found = True
+                break
+            ln += 1
+            
+    if not found:
+        error("urg")
+        return None    
+
     while ln < endln:
-        if section in ini[ln]:
+        if ini[ln].strip() == "":
+            raise(sys.argv[0] + ": Failed to find option! Exiting.")     
+        if option in ini[ln]:       
             return ln, ini[ln]
         ln += 1
     raise("urg")
@@ -45,7 +62,7 @@ def find_line(inifile, packagename, section):
  
 def gen_md5_diff\
     (packagename,\
-    entry,\
+    option,\
     linenum,\
     oldline,\
     tarfile):
@@ -56,7 +73,7 @@ def gen_md5_diff\
 
     #install: release-2/testpkg/testpkg-0.0.1-0.tar.bz 3140 fbbe05f50b9273be640c312857f70619
 
-    newline = entry + ": " + "release-2/" + packagename + "/" + basename + " " + len + " " + md5 + "\n"
+    newline = option + ": " + "release-2/" + packagename + "/" + basename + " " + len + " " + md5 + "\n"
 
     # Add one: sometimes patch/diff seems 1 based not zero based
     diff = [0,0,0,0]
@@ -71,12 +88,12 @@ def gen_md5_diff\
 
 def gen_version_diff\
     (packagename,\
-    entry,\
+    option,\
     linenum,\
     oldline,\
     version):
 
-    newline = entry + ": " + version + "\n"
+    newline = option + ": " + version + "\n"
 
     # Add one: sometimes patch/diff seems 1 based not zero based
     diff = [0,0,0,0]
@@ -91,7 +108,7 @@ def gen_version_diff\
     
 def gen_file_version_diff\
     (packagename,\
-    entry,\
+    option,\
     linenum,\
     oldline,\
     field_input):
@@ -110,7 +127,7 @@ def gen_file_version_diff\
     # Return the diff
     return diff
      
-            
+
 def main():
     global dists
     parser =  argparse.ArgumentParser(description = "Generates a diff to change a field of a given package in setup-2.ini. It is an error for given files not to exist in the .ini under that package."\
@@ -123,12 +140,16 @@ def main():
 
     parser.add_argument("package",\
         help="The package name to edit.", metavar="PKG")
+    
+    parser.add_argument("--section", dest="section",\
+        help = "Section, curr if not given.", metavar="SEC", nargs="?",\
+        default="curr")
 
-    parser.add_argument("entry",\
-        help="The entry to edit.", metavar="ENTRY")
+    parser.add_argument("option",\
+        help="The option to edit.", metavar="option")
         
     parser.add_argument("field",\
-        help="The field of the entry to edit.", metavar="FIELD", nargs="?")
+        help="The field of the option to edit.", metavar="FIELD", nargs="?")
 
     parser.add_argument("--field-input", dest="field_input",\
         help="The data to generate the replacement field with.", metavar="FIELD-INPUT", nargs="+")
@@ -136,37 +157,38 @@ def main():
     options = parser.parse_args()
     ini = options.ini
     packagename  = options.package
-    entry = options.entry
+    section = options.section
+    option = options.option
     field = options.field
     field_input = options.field_input
     diff_filename = os.path.basename(ini) + ".diff"
     
-    (linenum, line) = find_line(ini, packagename, entry)
+    (linenum, line) = find_line(ini, packagename, section, option)
       
-    if (entry == "install" or entry == "source") and field == "md5":
+    if (option == "install" or option == "source") and field == "md5":
         diff = gen_md5_diff\
         (\
             packagename,\
-            entry,\
+            option,\
             linenum,\
             line,\
             field_input[0]
         )
 
-    elif entry == "version":
+    elif option == "version":
         diff = gen_version_diff\
         (\
             packagename,\
-            entry,\
+            option,\
             linenum,\
             line,\
             field_input[0]
         )
-    elif (entry == "install" and field == "tarver"):
+    elif (option == "install" and field == "tarver"):
         diff = gen_file_version_diff\
         (\
             packagename,\
-            entry,\
+            option,\
             linenum,\
             line,\
             field_input

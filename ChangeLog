@@ -229,6 +229,36 @@ Added tests for --download and --ini. Moved --cache and --mirror tests to their 
 Revision 55
 -------------
 
+setup_ini_diff_make.py is getting out of hand: it's handling of the .ini file is unstructured. This was fine to start with but I keep adding functions eg
+
+Added error exits if the primitive line-hunting code runs out of the package we started in. Changed the name of variables to match my model of setup.ini: as a broken/nonstandard .ini where:
+
+@foo
+[section]
+option=feild1 feild2...
+
+@foo is level higher than the standard .ini section in the tree
+[curr] is implied. Why on earth didn't Cygwin make it explicit?
+[section] is a standard .ini section
+option= are standard .ini options, but
+field, is my term. There's no offical term for space separated words on an option line, as far as I know.
+
+What I really need is to create an object like ConfigParser or derived from it to parse the nonstandard Cygwin .ini. That would be much cleaner, but is it worth the effort?
+
+add dist selection to setup_ini_diff_make.py Add a [test] section to the mini_mirror setup.ini, and add the 0.0.2-0 version of testpkg as the target. Add the corresponding md5 patch command to the makefile.
+
+Use the above [test] section (ie --dist=test) in test-cyg-apt to confirm that the --dist= command line option works.
+
+Fixed a bug in the base 0.0.1-0 testpkg: on a second run of the makesystem it would pick up the 0.0.2-0 marker because it wasn't getting cleaned properly.
+
+Makefile I've been slowly adding to is also getting out of hand. I wish there was a good, *standard*, replacement for make.
+
+Fixed a bug in cyg-apt: --dist was failing because main() wasn't propagating distname out to the other functions as a global. Utilimately cyg-apt has to be turned in an object so we can explicitly use self.foo rather than all these globals.
+
+Revision 56
+-----------
+
+
 
 
 

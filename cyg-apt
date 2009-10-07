@@ -860,6 +860,7 @@ def get_rc(h):
     global PREFIX_ROOT
     global ABSOLUTE_ROOT
     global ROOT
+    global distname
 
     for i in h.readlines ():
         k, v = i.split ('=', 2)
@@ -909,6 +910,7 @@ def main():
     global scriptname
     global PREFIX_ROOT
     global ABSOLUTE_ROOT
+    global distname
 
     # Define constants
     installed_db_magic = 'INSTALLED.DB 2\n'

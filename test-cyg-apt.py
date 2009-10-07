@@ -305,6 +305,17 @@ class TestCygApt(unittest.TestCase):
         self.new_upgrade_test_cleanup()
   
   
+    def testcmdline_dist(self):
+        utilpack.popen("cyg-apt purge " + self.package_name)
+        self.assert_fno(self.version_2_marker)
+        installout = utilpack.popen\
+        ("cyg-apt --dist=test install " + self.package_name)
+        try:
+            self.assert_fyes(self.version_2_marker)
+        finally:
+            utilpack.popen("cyg-apt purge " + self.package_name)
+        
+
     def do_testupdate(self, command_line=""):
         setup_ini = self.opts["setup_ini"]
         setup_ini_basename_diff = os.path.basename(setup_ini) + ".diff"
