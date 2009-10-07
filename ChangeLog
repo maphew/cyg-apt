@@ -270,6 +270,15 @@ I notice that the new purge command is suboptimal: it cannot/does not remove pac
 Revision 57
 -----------
 
+Added a test for the basic string search version of `cyg-apt search testpkg`
+
+Added a basic test for the command line --root option. Uses Cygiwn mount command to determine the windows path root of the installation we're running in and confirms that cyg-apt list works with this path as the root. Also confirms it fails with a bad root -- just to make sure we're actually using the option data at all. This is a long way from a comprehensive test: running the whole test suite with specific root would be a much better tests. So I'm not 100% sure that cyg-apt works with a specified root on all commands.
+
+Made a temporary fix to cyg-apt's update() function: it was deleting the current setup-2.ini before we know the new download is successful!
+Now it downloads to a transient temporary directory. I notice I've got hardcoding that has to come out.
+
+Revision 58
+-----------
 
 
 

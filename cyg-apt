@@ -320,13 +320,21 @@ def filelist ():
 def update ():
     '''setup-2.ini'''
 
-    if not os.path.exists (downloads):
-        os.makedirs (downloads)
-    os.system ('rm -f "%s/%s"' % (downloads, 'setup-2.ini'))
-    uri_get (downloads, '%s/%s' % (mirror, 'setup-2.ini'))
+    if not os.path.exists("cyg_apt_tmp"):
+        os.system("mkdir cyg_apt_tmp")
+    
+    os.system("rm -f cyg_apt_tmp/setup-2.ini")
+    uri_get ("cyg_apt_tmp", '%s/%s' % (mirror, 'setup-2.ini'))
+    if os.path.exists("cyg_apt_tmp/setup-2.ini"):
+        if not os.path.exists (downloads):
+            os.makedirs (downloads)
+        os.system ("cp -pf cyg_apt_tmp/setup-2.ini %s" % downloads)
+    else:
+        raise("urg")
     if os.path.exists (setup_ini):
-        os.system ('cd %s && mv -f setup-2.ini setup-2.ini~' % config)
-    os.system ('cp -pf "%s/setup-2.ini" "%s"' % (downloads, config))
+        os.system ("mv %s %s" % (setup_ini, setup_ini + ".bak"))
+    os.system ("cp -pf cyg_apt_tmp/setup-2.ini " + setup_ini)
+    os.system("rm -rf cyg_apt_tmp")
 
 
 def get_version ():

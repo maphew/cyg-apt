@@ -78,6 +78,17 @@ class TestCygApt(unittest.TestCase):
         if os.path.exists(self.home_cyg_apt):
             self.home_cyg_apt_bak = self.home_cyg_apt + ".bak"
             os.system("cp %s %s" % (self.home_cyg_apt, self.home_cyg_apt_bak))
+            
+        found = False
+        mountout = utilpack.popen("mount").split("\n")
+        for l in mountout:
+            if "on / " in l:
+                l = l.split()[0]
+                l = l.replace(":", "")
+                self.root = "/" + l + "/"
+                found = True
+                break
+        self.assert_(found)
 
     def init_from_dot_cyg_apt(self):
         self.opts = {}
@@ -376,6 +387,20 @@ class TestCygApt(unittest.TestCase):
         self.assert_fyes(self.sourcename)
         self.assert_fyes(self.source_unpack_marker)
         os.system("/usr/bin/rm -rf " + self.sourcename)
+    
+    
+    def testsearch(self):
+        utilpack.popen("cyg-apt install " + self.package_name)
+        searchout = utilpack.popen("cyg-apt search " + self.package_name)
+        self.assert_("testpkg - is a test package" in searchout)
+        
+        
+    def testroot(self):
+        utilpack.popen("cyg-apt install " + self.package_name)
+        listout = utilpack.popen("cyg-apt --root=bad list")
+        self.assert_(self.package_name not in listout)
+        listout = utilpack.popen("cyg-apt --root=%s list" % self.root)
+        self.assert_(self.package_name in listout)
      
         
     def testurl(self):
@@ -429,7 +454,7 @@ class TestCygApt(unittest.TestCase):
                 os.system("rm -rf package_cache_copy")
 
 
-    def testcmdline_mirror(self):                
+    def testcmdline_mirror(self):
         update_out = utilpack.popen("cyg-apt --mirror=bad update",1)
         self.assert_("Resolving bad... failed" in update_out)
         self.do_testupdate(command_line="--mirror=%s" % self.opts["mirror"])

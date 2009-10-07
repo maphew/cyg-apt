@@ -1,6 +1,6 @@
-ROOT="/."
-MKNETREL="/."
-NETREL="/."
+ROOT="/"
+MKNETREL="/"
+NETREL="/"
 # Replace with the server you let mini_mirror upload to
 mirror="http://wanda/~chrisc"
 # Replace with a package cache directory you don't mind the testscript
