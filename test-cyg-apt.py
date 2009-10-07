@@ -27,6 +27,7 @@ class TestCygApt(unittest.TestCase):
         self.sourcemarker = "mini_mirror/testpkg/build/root/usr/bin/testpkg.exe"
         self.source_unpack_marker = "testpkg-0.0.1-0/usr/bin/testpkg.exe"
         self.version_2_marker = "/etc/ver2_marker"
+        self.testpkg_lib_marker = "/usr/lib/testpkg-lib.marker"
         self.pre_remove_marker = "/usr/share/doc/testpkg/README"
         self.post_remove_marker = "/usr/share/doc/testpkg"
         self.post_install_script = "/etc/postinstall/testpkg.sh"
@@ -290,6 +291,13 @@ class TestCygApt(unittest.TestCase):
         # It's a problem depending on cyg-apt to clean up after these tests
         #utilpack.popen("cyg-apt remove " + self.package_name)
         
+        
+    def testversion(self):
+        utilpack.popen("cyg-apt install " + self.package_name)
+        versionout = utilpack.popen\
+        ("cyg-apt version " + self.package_name)
+        self.assert_(self.ver in versionout)
+        
 
     def testnew(self):
         self.new_upgrade_test_setup(False)
@@ -314,7 +322,20 @@ class TestCygApt(unittest.TestCase):
             self.assert_fyes(self.version_2_marker)
         finally:
             utilpack.popen("cyg-apt purge " + self.package_name)
+            
         
+    def testcmdline_nodeps(self):
+        utilpack.popen\
+        ("cyg-apt remove " + self.package_name + " " + self.package_name_2)
+        utilpack.popen("cyg-apt -x install " + self.package_name)
+        listout = utilpack.popen("cyg-apt list")
+        try:
+            self.assert_(self.package_name in listout)
+            self.assert_(self.package_name_2 not in listout)
+            self.assert_fno(self.testpkg_lib_marker)
+        finally:
+            utilpack.popen("cyg-apt remove " + self.package_name)
+                
 
     def do_testupdate(self, command_line=""):
         setup_ini = self.opts["setup_ini"]

@@ -1,9 +1,10 @@
 BUILDDIR =  ../build
 TARFILE = testpkg-lib-0.0.1-1.tar.bz2
 TOOLS = ../../../tools/
-
+TESTPKG-LIB-MARKER = testpkg-lib.marker
 all:
 	# Create the tarball
+	touch ../build/root/usr/lib/$(TESTPKG-LIB-MARKER)
 	cd $(BUILDDIR)/root ; pwd ; tar --exclude=".svn" -jcf $(TARFILE) *;\
 mv $(TARFILE) ../release-2/testpkg-lib;\
 
@@ -21,6 +22,7 @@ mv $(TARFILE) ../release-2/testpkg-lib;\
 	/usr/bin/rm -rf setup-2.ini.diff	
 
 clean:
+	rm ../build/root/usr/lib/$(TESTPKG-LIB-MARKER)
 	/usr/bin/rm -f ../build/release-2/testpkg-lib/*
 	$(TOOLS)hasfiles.py ../build svn
 	/usr/bin/rm -f setup-2.ini

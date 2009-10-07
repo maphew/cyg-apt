@@ -258,8 +258,17 @@ Fixed a bug in cyg-apt: --dist was failing because main() wasn't propagating dis
 Revision 56
 -----------
 
+Added a test for cyg-apt version. Simple command, gives the version of an installed package so the test is simple too.
+
+Added support for cyg-apt --no-deps testing in mini_mirror: testpkg-lib (or package_name_2 as it is also know) now installs /usr/lib/testpkg-lib.marker.
+
+Added test for cyg-apt --no-deps command line option: test absence of marker when testpkg is installed (ie that it doesn't pull in its dependency, testpkg-lib), also check installed.db handling by making sure it doesn't appear in `cyg-apt list`
+
+I notice that the new purge command is suboptimal: it cannot/does not remove packages present in the cache but not installed. As it stands I think the main way of locating tarballs in cyg-apt is via installed.db. Fixing this behaviour will require using setup.ini's data in conjunction with other data: it's more like an "anti-install" than a normal remove, though a normal remove also has to happen.
 
 
+Revision 57
+-----------
 
 
 
