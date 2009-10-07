@@ -224,6 +224,10 @@ Added utilpack to the tools: some handy routines, currently in the domain of IPC
 Revision 54
 -------------
 
+Added tests for --download and --ini. Moved --cache and --mirror tests to their own functions: the command line test was getting monolithic: when something goes wrong it's great to be able to isolate a specific test.
+
+Revision 55
+-------------
 
 
 

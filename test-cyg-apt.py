@@ -384,9 +384,7 @@ class TestCygApt(unittest.TestCase):
         self.do_install_remove_test()
 
     
-    def testcommandline(self):
-    
-        # Test --cache
+    def testcmdline_cache(self):
         os.system("cp -rf %s %s" % (self.opts["cache"], "package_cache_copy"))
         os.system("mv %s %s" %\
         (self.opts["cache"], self.opts["cache"] + ".bak"))
@@ -397,13 +395,34 @@ class TestCygApt(unittest.TestCase):
             (self.opts["cache"] + ".bak", self.opts["cache"]))
             if os.path.exists(self.opts["cache"]):
                 os.system("rm -rf package_cache_copy")
-                
-        # Test --mirror
+
+
+    def testcmdline_mirror(self):                
         update_out = utilpack.popen("cyg-apt --mirror=bad update",1)
         self.assert_("Resolving bad... failed" in update_out)
         self.do_testupdate(command_line="--mirror=%s" % self.opts["mirror"])
         
-    
+
+    def testcmdline_download_only(self):
+        purge_out = utilpack.popen\
+        ("cyg-apt purge " + self.package_name, 1)
+        install_out = utilpack.popen\
+        ("cyg-apt --download install " + self.package_name)   
+        self.confirm_remove_clean(self.package_name)
+        
+        
+    def testcmdline_ini(self):
+        utilpack.popen("cyg-apt install " + self.package_name)
+        list_out = utilpack.popen\
+        ("cyg-apt --ini=bad list", 1)
+        self.assert_("bad no such file" in list_out)
+        
+        list_out = utilpack.popen\
+        ("cyg-apt --ini=%s list" % self.build_setup_ini)
+        self.assert_(self.package_name in list_out)
+        
+        
+         
     def assert_fyes(self, f):
             self.assert_(os.path.exists(f) is True)
     
