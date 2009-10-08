@@ -320,6 +320,11 @@ I notice we have a dependence on Cygwin gzip. That's new to me, and also has to 
 Revision 62
 -----------
 
+Remove dependence on Cygwin gzip -- use Python gzip module instead.
+
+Revision 63
+-----------
+
 
 
 
