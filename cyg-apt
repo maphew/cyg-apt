@@ -521,21 +521,17 @@ def run_all (dir):
 
 
 def do_install ():
-    # find ball
     ball = get_ball ()
-    # untar capture list
-    # tarfile
-
-    pipe = os.popen ('tar -C "%s" -xjvf "%s"' % (ABSOLUTE_ROOT, ball), 'r')
-    lst = map (string.strip, pipe.readlines ())
-    if pipe.close ():
-        raise 'urg'
-    # write list
+    if tarfile.is_tarfile(ball):
+        tf = tarfile.open(ball)
+        tf.extractall(ABSOLUTE_ROOT)
+        lst = tf.getnames()
+    else:
+        print >> sys.stderr, "%s: bad tarball %s, exiting." % (scriptname, ball)
+        print >> sys.stderr, "%s: INSTALL FAILED" % scriptname
+        sys.exit(1)
     write_filelist (lst)
-    ## run_all (ROOT + '/etc/postinstall')
-    #update installed[]
     installed[0][packagename] = os.path.basename (ball)
-    # write installed.db
     write_installed ()
 
 
@@ -787,10 +783,15 @@ def do_unpack ():
         printerr(packagename + " already exists. Not overwriting.\n")
         return 1       
     os.system("mkdir " + packagename)
-    pipe = os.popen ('tar -C "%s" -xjvf "%s"' % (packagename, ball), 'r')
-    lst = map (string.strip, pipe.readlines ())
-    if pipe.close ():
-        raise 'urg1'
+    if tarfile.is_tarfile(ball):
+        tf = tarfile.open(ball)
+        tf.extractall(packagename)
+        lst = tf.getnames()
+    else:
+        print >> sys.stderr,\
+            "%s: bad source tarball %s, exiting." % (scriptname, ball)
+        print >> sys.stderr, "%s: SOURCE UNPACK FAILED" % scriptname
+        sys.exit(1)
     if not os.path.exists (packagename):
         raise 'urg2'
     print packagename

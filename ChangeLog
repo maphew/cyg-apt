@@ -312,6 +312,13 @@ Big change to test-cyg-apt.py and it's supporting utilpack.py: don't echo anythi
 Revision 61
 -----------
 
+Remove dependance on Cygwin tar : use Python tarfile module instead.
+Idea is to reduce the number of packages cyg-apt can't safely update. Maybe one day cyg-apt will be runnable from a Windows dos box. That would be very useful: it would open the posibility of updating Cygwin itself. Howver I don't know if core Cygwin can/should be done properly by an unoffical tool such as this one.
+
+I notice we have a dependence on Cygwin gzip. That's new to me, and also has to go.
+
+Revision 62
+-----------
 
 
 
