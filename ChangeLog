@@ -280,6 +280,17 @@ Now it downloads to a transient temporary directory. I notice I've got hardcodin
 Revision 58
 -----------
 
+Removed hardcoding of Cygwin 1.7's (current) setup-2.ini name for setup.ini. Mostly removed from  update()
+
+Hacked a bit on purge(): rather than calling remove() it calls do_uninstall() directly: the advantage is that now each package is processed 'atomically' in the purge() mainloop and you don't get a warning when purging a package that isn't installed: it's not an error to do that, so it shouldn't warn. Disadvantage is now do_uninstall() is called from more places and if additional code is added to remove() it won't automatically get picked up by purge()
+
+Big change to --root option handling: removed all the hardcoded assumptions of how cyg-apt should be configured when using --root. Now the model is much simpler and cleaner: setting the root prefixes the .cyg-apt configuration, period. So if you have specific needs for running cyg-apt outside Cygwin the proceedure is to create a custom .cyg-apt for paths that lie within Cygwin and provide command line overides for *anything that lies outside Cygwin's filetree*. This use case remains untested though.
+
+Changed .cyg-apt to use an absolute path for local_cache. This is a backwards step for the ease of setting up cyg-apt testing but had to be done to support the newly simplified .cyg-apt/ --root model.
+
+Revision 59
+------------
+
 
 
 

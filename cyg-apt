@@ -318,22 +318,25 @@ def filelist ():
 
 
 def update ():
-    '''setup-2.ini'''
-
+    '''setup.ini'''
+    global setup_ini
+    
+    setup_ini_name = os.path.basename(setup_ini)
     if not os.path.exists("cyg_apt_tmp"):
         os.system("mkdir cyg_apt_tmp")
-    
-    os.system("rm -f cyg_apt_tmp/setup-2.ini")
-    uri_get ("cyg_apt_tmp", '%s/%s' % (mirror, 'setup-2.ini'))
-    if os.path.exists("cyg_apt_tmp/setup-2.ini"):
+    else:
+        os.system("rm -f cyg_apt_tmp/" + setup_ini_name)
+    uri_get ("cyg_apt_tmp", '%s/%s' % (mirror, setup_ini_name))
+    if os.path.exists("cyg_apt_tmp/" + setup_ini_name):
         if not os.path.exists (downloads):
             os.makedirs (downloads)
-        os.system ("cp -pf cyg_apt_tmp/setup-2.ini %s" % downloads)
+        os.system ("cp -pf cyg_apt_tmp/%s %s" % (setup_ini_name, downloads))
     else:
+        # Download failed: neither installed .ini changed (if they exist)
         raise("urg")
     if os.path.exists (setup_ini):
         os.system ("mv %s %s" % (setup_ini, setup_ini + ".bak"))
-    os.system ("cp -pf cyg_apt_tmp/setup-2.ini " + setup_ini)
+    os.system ("cp -pf cyg_apt_tmp/%s %s" % (setup_ini_name, setup_ini))
     os.system("rm -rf cyg_apt_tmp")
 
 
@@ -621,7 +624,7 @@ def remove ():
         if not installed[0].has_key (packagename):
             sys.stderr.write ('warning: %s not installed\n' % packagename)
             continue
-        sys.stderr.write ('removing %s %s\n' \
+        sys.stderr.write ('uninstalling %s %s\n' \
                   % (packagename,
                      version_to_string (get_installed_version ())))
         do_uninstall ()
@@ -629,20 +632,26 @@ def remove ():
 
 def purge ():
     '''purge package'''
-    remove()
     global packagename
     global PREFIX_ROOT
     global ABSOLUTE_ROOT
-        
+    global scriptname
+    
     for packagename in files[1:]:
-        scripts = [PREFIX_ROOT + '/etc/postinstall/%s.sh' % packagename + ".done",
-        PREFIX_ROOT + '/etc/preremove/%s.sh' % packagename + ".done",
-        PREFIX_ROOT + '/etc/postremove/%s.sh' % packagename + ".done"]
+        if installed[0].has_key (packagename):
+            sys.stderr.write ('uninstalling %s %s\n' \
+                % (packagename,
+                version_to_string (get_installed_version ())))
+            do_uninstall ()
+        scripts = ['/etc/postinstall/%s.sh',  '/etc/preremove/%s.sh',\
+            '/etc/postremove/%s.sh']
+        scripts = [PREFIX_ROOT + s % packagename + ".done" for s in scripts]
         for s in scripts:
             if os.path.exists(s):
                 os.remove(s)
         ball = get_ball()
         if os.path.exists(ball):
+            print "%s: removing %s" % (scriptname, ball)
             os.remove(ball)
 
 
@@ -824,7 +833,7 @@ def usage():
             -c,--cache=DIR         download cache [%(cache)s]
             -d,--download          download only
             -h,--help              show brief usage
-            -i,--ini=FILE          use setup-2.ini [%(setup_ini)s]
+            -i,--ini=FILE          use setup.ini [%(setup_ini)s]
             -m,--mirror=URL        use mirror [%(mirror)s]
             -r,--root=DIR          set root [%(ROOT)s]
             -t,--dist=NAME         set dist name (curr, test, prev) [%(distname)s]
@@ -990,11 +999,11 @@ def main():
             downloads = cache + '/' + urllib.quote (mirror, '').lower ()
         elif o == '--root' or o == '-r':
             set_root(a)
-            config = PREFIX_ROOT + '/etc/setup'
-            cache = PREFIX_ROOT + '/var/cache/setup'
-            setup_ini = config + '/setup-2.ini'
-            installed_db = config + '/installed.db'
-            downloads = cache + '/' + urllib.quote (mirror, '').lower ()
+            to_prefix =\
+                ["config", "cache", "setup_ini", "installed_db", "downloads"]
+            d = __main__.__dict__
+            for conf_item in to_prefix:
+                d[conf_item] = PREFIX_ROOT + d[conf_item]
         elif o == '--dist' or o == '-t':
             distname = a
         elif o == '--no-deps' or o == '-x':

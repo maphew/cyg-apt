@@ -1,5 +1,5 @@
 ROOT="/"
 mirror="http://wanda/~chrisc"
-cache="local_cache"
+cache="/e/home/develop/code/cyg-apt/local_cache"
 setup_ini="/etc/setup/setup-2.ini"
 distname="curr"
