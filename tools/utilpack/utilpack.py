@@ -3,11 +3,22 @@ import os
 import subprocess
 
 
-def popen(cmd, stream = 0):
+def popen_ext(cmd, echo=0):
+    if echo:
+        print "\n" + cmd
+    ret = popen(cmd)
+    if echo:
+        print ret[0],
+        print ret[1],
+    return ret
+
+
+def popen(cmd):
     spl = cmd.split()
     ret = subprocess.Popen(spl,\
         stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-    return ret[stream]
+    return ret
+
 
 class path:
     def __init__(self, path):

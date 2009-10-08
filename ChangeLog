@@ -303,9 +303,14 @@ I notice that the find command is very slow. Most of the time is in reading the 
 Revision 60
 -----------
 
+Don't raise an exception in update() if the given mirror is bad: it's an error condition not a script failure and I'm increasingly wanting to differentiate these.
 
+Don't give usage() if setup.ini or installed.db is missing: these are error conditions like any other. DO give usage() if given a command we don't understand, we used to exit silently.
 
+Big change to test-cyg-apt.py and it's supporting utilpack.py: don't echo anything unless run with -vv (-v will give the tests that are performed, -vv will also echo the cyg-apt commands and their outputs. Getting -vv into the test object is a bit hacky but it's already a bit of overkill. Also changed popen to make it more like popen2: that's a good interface (subprocess's interface sucks IMO. Too complex -- should come with convenience functions reproducing the old os.popen functions.)
 
+Revision 61
+-----------
 
 
 

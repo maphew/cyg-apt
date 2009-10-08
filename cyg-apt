@@ -320,6 +320,7 @@ def filelist ():
 def update ():
     '''setup.ini'''
     global setup_ini
+    global scriptname
     
     setup_ini_name = os.path.basename(setup_ini)
     if not os.path.exists("cyg_apt_tmp"):
@@ -333,7 +334,8 @@ def update ():
         os.system ("cp -pf cyg_apt_tmp/%s %s" % (setup_ini_name, downloads))
     else:
         # Download failed: neither installed .ini changed (if they exist)
-        raise("urg")
+        print >> sys.stderr, "%s: bad mirror, exiting." % scriptname
+        sys.exit(1)
     if os.path.exists (setup_ini):
         os.system ("mv %s %s" % (setup_ini, setup_ini + ".bak"))
     os.system ("cp -pf cyg_apt_tmp/%s %s" % (setup_ini_name, setup_ini))
@@ -1038,9 +1040,8 @@ def main():
     if ((command != 'setup') and (command != 'update')):
         for i in (installed_db, setup_ini):
             if not os.path.isfile (i):
-                usage ()
                 sys.stderr.write ('\n')
-                sys.stderr.write ('error: %s no such file\n' % i)
+                sys.stderr.write ('error: \"%s\" no such file\n' % i)
                 sys.stderr.write ('error: run cyg-apt setup?\n' % vars ())
                 sys.exit (2)
         dists = 0
@@ -1051,6 +1052,8 @@ def main():
     # Finished init: launch command to do the work
     if command and command in __main__.__dict__:
         __main__.__dict__[command] ()
+    else:
+        usage()
         
 if __name__ == '__main__':
     main()
