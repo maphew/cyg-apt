@@ -428,8 +428,11 @@ def md5 ():
 def search ():
     '''search package list'''
     global packagename
-    # TODO fix regex searches
-    regexp = re.escape(packagename)
+    global regex_search
+    if not regex_search:
+        regexp = re.escape(packagename)
+    else:
+        regexp = packagename
     packages = []
     keys = []
     if distname in dists:
@@ -805,7 +808,12 @@ def source ():
 def find ():
     '''package containing file'''
     global packagename
-    file_to_find = packagename
+    global regex_search
+    
+    if regex_search:
+        file_to_find = packagename
+    else:
+        file_to_find = re.escape(packagename)
     hits = []
     for packagename in psort (installed[0].keys ()):
         filenames_file = "%s/%s.lst.gz" % (config, packagename)
@@ -816,6 +824,7 @@ def find ():
             if re.search (file_to_find, '/%s' % i):
                 hits.append ('%s: /%s' % (packagename, i))
     print (string.join (hits, '\n'))
+
 
 def usage():
     scriptname = os.path.basename (sys.argv[0])
@@ -838,6 +847,7 @@ def usage():
             -r,--root=DIR          set root [%(ROOT)s]
             -t,--dist=NAME         set dist name (curr, test, prev) [%(distname)s]
             -x,--no-deps           ignore dependencies
+            -s,--regexp            search as regex pattern
         ''' % d)
 
 
@@ -928,12 +938,16 @@ def main():
     global PREFIX_ROOT
     global ABSOLUTE_ROOT
     global distname
+    global regex_search
 
     # Define constants
     installed_db_magic = 'INSTALLED.DB 2\n'
     INSTALL = 'install'
     rc_options = ['ROOT', 'mirror', 'cache', 'setup_ini', 'distname']
     distnames = ('curr', 'test', 'prev')
+    
+    # Default behaviours
+    regex_search = False
     
     # Fetch basic configuration from the OS
     scriptname = os.path.basename (sys.argv[0])           
@@ -969,7 +983,7 @@ def main():
     (options, files) = getopt.getopt (sys.argv[1:],
                       'c:dhi:m:r:t:x',
                       ('cache=', 'download', 'help', 'mirror=',
-                       'root=', 'ini=', 'dist=', 'no-deps')) 
+                       'root=', 'ini=', 'dist=', 'no-deps', 'regexp')) 
     command = 'help'
     if len (files) > 0:
         command = files[0]
@@ -1008,6 +1022,8 @@ def main():
             distname = a
         elif o == '--no-deps' or o == '-x':
             nodeps_p = 1
+        elif o == '--regexp' or o == '-s':
+            regex_search = True
     
 
 #    if command == 'setup':

@@ -18,6 +18,8 @@ class TestCygApt(unittest.TestCase):
     def setUp(self):
         self.package_name = "testpkg"
         self.package_name_2 = "testpkg-lib"
+        self.package_search_regex = "testpkg(-lib)?"
+        self.package_find_regex = "/usr/bin/.estpkg"
         self.relname = "release-2"
         self.cyg_apt_rc_file = ".cyg-apt"
         self.tarname = "testpkg-0.0.1-0.tar.bz2"
@@ -348,6 +350,18 @@ class TestCygApt(unittest.TestCase):
             utilpack.popen("cyg-apt remove " + self.package_name)
                 
 
+    def testcmdline_regexp(self):
+        utilpack.popen("cyg-apt install " + self.package_name)
+        searchout = utilpack.popen("cyg-apt --regexp search "\
+            + self.package_search_regex)
+        self.assert_("testpkg - is a test package" in searchout)
+        self.assert_("testpkg-lib - supports test package" in searchout)
+        findout = utilpack.popen("cyg-apt --regexp find "\
+            + self.package_find_regex)
+        self.assert_("/usr/bin/testpkg.exe" in findout)
+        
+    
+    
     def do_testupdate(self, command_line=""):
         setup_ini = self.opts["setup_ini"]
         setup_ini_basename_diff = os.path.basename(setup_ini) + ".diff"

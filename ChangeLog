@@ -291,6 +291,18 @@ Changed .cyg-apt to use an absolute path for local_cache. This is a backwards st
 Revision 59
 ------------
 
+Added --regexp flag. Changed cyg-apt search and find to respect the new flag: 
+noflag -> simple substring searches
+--regexp -> report re.search(str) results
+
+The advantage of this is that users are not tripped by characters being used in a regex when they don't expect eg Ahmet Sacan reported a problem with the original cyg-apt when performing cyg-apt search g++.
+
+Added tests for the new flag applied to search and find to test-cyg-apt.py
+I notice that the find command is very slow. Most of the time is in reading the tarballs and extracting their filelists.
+
+Revision 60
+-----------
+
 
 
 
