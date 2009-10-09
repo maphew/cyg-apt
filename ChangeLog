@@ -340,7 +340,10 @@ Fixed test-cyg-apt.py do_testupdate(): it was generating a diff to patch setup.i
 Revision 64
 -----------
 
+cyg-apt update() now checks uri_get error return. Simplify update() -- get rid of all the file shuffling: uri_get won't overwrite anything unless the download succeeds, so there's no need to back up in update(). Remove hardcoding of setup.ini's name in update: now determined by a single call to uname. It's a pitty uname ties us to Cygwin, not sure how to deal with that.
 
+Revision 65
+-----------
 
 
 

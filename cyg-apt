@@ -253,12 +253,6 @@ def do_download ():
         if not os.path.exists (dir):
             os.makedirs (dir)
         status = uri_get (dir, '%s/%s' % (mirror, url))
-        # successful pipe close returns 'None'
-        if not status:
-            status = 0
-
-        signal = 0x0f & status
-        ## exit_status = status >> 8
         if status:
             raise 'urg'
 
@@ -381,29 +375,21 @@ def update ():
     '''setup.ini'''
     global setup_ini
     global scriptname
-    
+    global downloads
     setup_ini_name = os.path.basename(setup_ini)
     setup_ini_url = '%s/%s' % (mirror, setup_ini_name)
     
-    if not os.path.exists("cyg_apt_tmp"):
-        os.system("mkdir cyg_apt_tmp")
-    else:
-        os.system("rm -f cyg_apt_tmp/" + setup_ini_name)
-    uri_get ("cyg_apt_tmp", setup_ini_url)
-    if os.path.exists("cyg_apt_tmp/" + setup_ini_name):
-        if not os.path.exists (downloads):
-            os.makedirs (downloads)
-        os.system ("cp -pf cyg_apt_tmp/%s %s" % (setup_ini_name, downloads))
-    else:
-        # Download failed: neither installed .ini changed (if they exist)
+    if not os.path.exists (downloads):
+        os.makedirs (downloads)
+    err = uri_get (downloads, setup_ini_url)
+    if err:
         print >> sys.stderr,\
             "%s: failed to download setup.ini from %s, exiting." %\
             (scriptname, setup_ini_url)
-        sys.exit(1)
-    if os.path.exists (setup_ini):
-        os.system ("mv %s %s" % (setup_ini, setup_ini + ".bak"))
-    os.system ("cp -pf cyg_apt_tmp/%s %s" % (setup_ini_name, setup_ini))
-    os.system("rm -rf cyg_apt_tmp")
+    else:
+        if os.path.exists (setup_ini):
+            os.system("cp -f " + setup_ini + " " + setup_ini + "~")
+        os.system("cp -pf " + downloads + "/" + setup_ini_name + " " + setup_ini)
 
 
 def get_version ():
