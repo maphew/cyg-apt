@@ -165,7 +165,8 @@ class TestCygApt(unittest.TestCase):
         download_out = utilpack.popen_ext\
             ("cyg-apt download " + self.package_name, self.v)[0]
         download_out = download_out.split("\n")
-        self.assert_(download_out[1] == download_out[2])
+        download_out = [x for x in download_out if x != ""]
+        self.assert_(download_out[-1] == download_out[-2])
         self.assert_fyes(self.expected_ballpath)
         
     
@@ -379,7 +380,8 @@ class TestCygApt(unittest.TestCase):
         cmd += "install tarver --field-input "
         cmd += self.tarname + " 0.0.1-0 0.0.2-0"
         utilpack.popen_ext(cmd)
-        update = utilpack.popen_ext("cyg-apt update, self.v")[0]
+        utilpack.popen_ext("patch " + setup_ini + " " + setup_ini_basename_diff)
+        update = utilpack.popen_ext("cyg-apt " + command_line + " update", self.v)[0]
         diffout = utilpack.popen_ext\
         (\
             "diff " + self.opts["setup_ini"] + " " +\
@@ -389,7 +391,11 @@ class TestCygApt(unittest.TestCase):
     
     
     def testupdate(self):
-        self.do_testupdate()
+        try:
+            self.do_testupdate()
+        finally:
+            # Clean up in case failed test clobbered setup.ini
+            utilpack.popen_ext("cyg-apt update", self.v)
 
 
     def testshow(self):
@@ -487,8 +493,12 @@ class TestCygApt(unittest.TestCase):
     def testcmdline_mirror(self):
         update_out = utilpack.popen_ext\
             ("cyg-apt --mirror=bad update", self.v)[1]
-        self.assert_("Resolving bad... failed" in update_out)
-        self.do_testupdate(command_line="--mirror=%s" % self.opts["mirror"])
+        self.assert_("failed to download setup.ini" in update_out)
+        try:
+            self.do_testupdate(command_line="--mirror=%s" % self.opts["mirror"])
+        finally:
+            # Clean up in case failed test clobbered setup.ini
+            utilpack.popen_ext("cyg-apt update", self.v)
         
 
     def testcmdline_download_only(self):

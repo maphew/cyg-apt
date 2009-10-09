@@ -18,7 +18,41 @@ import sys
 import pdb
 import tarfile
 import gzip
+import urllib
+import urlparse
 from pdb import set_trace as st
+
+
+class CygAptURLopener(urllib.FancyURLopener):
+    def __init__(self, *args):
+        urllib.FancyURLopener.__init__(self, *args)
+        self.errcode = 200
+        self.barmax = 40
+        
+        
+    def http_error_default(self, url, fp, errcode, errmsg, headers):
+        self.errcode = errcode
+        return urllib.FancyURLopener.http_error_default\
+            (self, url, fp, errcode, errmsg, headers)
+                          
+                                                        
+    def dlProgress(self, count, blockSize, totalSize):
+        if self.errcode != 200:
+            return
+        barmax = self.barmax
+        ratio = min((count * blockSize), totalSize) / float(totalSize)
+        bar = int(barmax * ratio)
+        print "[",
+        for i in range(barmax):
+            if i < bar:
+                sys.stdout.write("=")
+            elif i == bar:
+                sys.stdout.write(">")
+            else:
+                sys.stdout.write(" ")
+        sys.stdout.write("]\r")
+        sys.stdout.flush()
+
 #urg
 plist = list
     
@@ -93,11 +127,37 @@ def debug (s):
 
 
 def uri_get (dir, uri):
-    if uri[:7] == 'file://':
+    global scriptname
+    up = urlparse.urlparse(uri)
+    opener = CygAptURLopener()
+    ret = 1
+    
+    if up.scheme == "file":
         return os.system ('cp -pv "%s" "%s"' % (uri[7:], dir))
+    elif up.scheme == "http":
+        url_base = os.path.basename(up.path)
+        old_cwd = os.getcwd()
+        os.chdir(dir)
+        print "%s: downloading: %s" % (scriptname, uri)
+        try:
+            result = opener.retrieve\
+                (uri, url_base + ".tmp", reporthook = opener.dlProgress)
+        except IOError:
+            opener.errcode = 1
+        print "",
+        if (opener.errcode == 200):
+            os.rename(url_base + ".tmp", url_base)
+            ret = 0
+        else:
+            if os.path.exists(url_base + ".tmp"):
+                os.remove(url_base + ".tmp")
+            print >> sys.stderr, "%s: bad URL %s" % (scriptname, uri)
+            ret = 1
+        os.chdir(old_cwd)
     else:
-        return os.system ('cd "%s" && wget -c "%s"' % (dir, uri))
-
+        print >> sys.stderr, "%s: bad URL %s" % (scriptname, uri)
+    return ret
+        
 
 def help ():
     '''help COMMAND'''
@@ -208,7 +268,6 @@ def download ():
     do_download ()
     ball ()
     md5 ()
-    print ""
 
         
 def no_package (s='error'):
@@ -324,18 +383,22 @@ def update ():
     global scriptname
     
     setup_ini_name = os.path.basename(setup_ini)
+    setup_ini_url = '%s/%s' % (mirror, setup_ini_name)
+    
     if not os.path.exists("cyg_apt_tmp"):
         os.system("mkdir cyg_apt_tmp")
     else:
         os.system("rm -f cyg_apt_tmp/" + setup_ini_name)
-    uri_get ("cyg_apt_tmp", '%s/%s' % (mirror, setup_ini_name))
+    uri_get ("cyg_apt_tmp", setup_ini_url)
     if os.path.exists("cyg_apt_tmp/" + setup_ini_name):
         if not os.path.exists (downloads):
             os.makedirs (downloads)
         os.system ("cp -pf cyg_apt_tmp/%s %s" % (setup_ini_name, downloads))
     else:
         # Download failed: neither installed .ini changed (if they exist)
-        print >> sys.stderr, "%s: bad mirror, exiting." % scriptname
+        print >> sys.stderr,\
+            "%s: failed to download setup.ini from %s, exiting." %\
+            (scriptname, setup_ini_url)
         sys.exit(1)
     if os.path.exists (setup_ini):
         os.system ("mv %s %s" % (setup_ini, setup_ini + ".bak"))

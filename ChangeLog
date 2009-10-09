@@ -325,6 +325,22 @@ Remove dependence on Cygwin gzip -- use Python gzip module instead.
 Revision 63
 -----------
 
+Removed dependence on Cygwin wget -- use Python urllib instead, with CygAptURLopener as a small helper class derived from urllib.FancyURLopener: does a better job of catching errors and has a simple built-in progress bar callback. The calls to uri_get have not been updated to the new semantics: one thing at a time.
+
+Made the cyg-apt error message more informative.
+
+Removed blank link from cyg-apt download's output.
+
+Fixed buggy test in test-cyg-apt: do_updatetest wasn't really testing anything.
+
+Changed test-cyg-apt.py testcmdline_mirror() to match new error message.
+Added always-executed cleanup after do_testupdate() to ensure setup.ini is replaced: the test might (purposefully) clobber the file.
+Fixed test-cyg-apt.py do_testupdate(): it was generating a diff to patch setup.ini with but not applying it, so the overwriting cyg-apt update could never fail. This test is overcomplicated and will be simplified, anyway.
+
+Revision 64
+-----------
+
+
 
 
 
