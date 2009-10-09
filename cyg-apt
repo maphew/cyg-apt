@@ -3,7 +3,8 @@
 '''
   cyg-apt - Keep Cygwin up to date.
   
-  (c) 2002--2009  Jan Nieuwenhuizen, Chris Cormie <janneke@gnu.org> <cjcormie@gmail.com>
+  (c) 2002--2009  Jan Nieuwenhuizen, Chris Cormie 
+                  <janneke@gnu.org> <cjcormie@gmail.com>
   
   License: GNU GPL
 '''
@@ -20,8 +21,8 @@ import tarfile
 import gzip
 import urllib
 import urlparse
-from pdb import set_trace as st
-
+import md5 as md5mod
+from pdb import set_trace as stra
 
 class CygAptURLopener(urllib.FancyURLopener):
     def __init__(self, *args):
@@ -452,9 +453,11 @@ def new ():
 
 def get_md5 ():
     url, md5 = get_url ()
-    pipe = os.popen ('md5sum "%s/%s"' % (downloads, url), 'r')
-    actual_md5 = string.split (pipe.read ())[0]
-    return actual_md5
+    f = file("%s/%s" % (downloads, url)).read()
+    m = md5mod.new()
+    m.update(f)
+    digest = m.hexdigest()
+    return digest
 
 
 def check_md5 (verbose=0):
@@ -712,11 +715,12 @@ def install ():
     for packagename in missing.keys ():
         if not get_url ():
             del missing[packagename]
+            
     for packagename in missing.keys ():
         download ()
     if download_p:
         sys.exit (0)
-    for packagename in missing.keys ():
+    for packagename in missing.keys ():            
         if installed[0].has_key (packagename):
             sys.stderr.write ('preparing to replace %s %s\n' \
                       % (packagename,
@@ -735,6 +739,17 @@ def upgrade ():
     install ()
 
 
+def cygpath(path):
+    path = path.replace("\\", "/")
+    if len(path) == 3:
+        if path[1] == ":":
+            path = "/" + path[0].lower()
+    elif len(path) > 1:        
+        if path[1] == ":":
+            path = "/" + path[0].lower() + path[2:]
+    return path
+
+
 def get_setup_rc(location):
     if not (os.path.exists(location + "/" + "setup.rc")):
         return (None, None)
@@ -746,7 +761,7 @@ def get_setup_rc(location):
             last_cache = setup_rc[i+1].strip()
         if "last-mirror" in setup_rc[i]:
             last_mirror = setup_rc[i+1].strip()
-    last_cache = os.popen("cygpath -au \"" + last_cache + "\"").read().strip()
+    last_cache = cygpath(last_cache)
     return (last_cache, last_mirror)
 
 
@@ -781,7 +796,14 @@ def setup ():
         print "%s: creating %s from defaults." % (scriptname, cyg_apt_rc)
         mirror = last_mirror
         cache = last_cache
-        cygwin_version = os.popen("uname -r").read()[:3]
+        platform = os.popen("uname").read()[:6]
+        if platform == "CYGWIN":
+            cygwin_version = os.popen("uname -r").read()[:3]
+        else:
+            print >> sys.stderr, scriptname +\
+                ": not running under Cygwin, guessing target Cygwin install is"\
+                " version 1.5: setup_ini in .cyg-apt may be incorrect."
+            cygwin_version = "1.5"            
         if cygwin_version == "1.7":
             setup_ini = config + "/setup-2.ini"
         else:
@@ -955,6 +977,14 @@ def get_rc(h):
     config = PREFIX_ROOT + '/etc/setup'    
     downloads = cache + '/' + urllib.quote (mirror, '').lower ()
     installed_db = config + '/installed.db'
+    return 0
+
+
+def check_forbidden_packages(packages):
+    disallowed = ["python", "cygwin", "base-cygwin", "coreutils", "joe"]
+    for package in packages:
+        if package in disallowed:
+            return 1
     return 0
 
 

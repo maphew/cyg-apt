@@ -345,5 +345,16 @@ cyg-apt update() now checks uri_get error return. Simplify update() -- get rid o
 Revision 65
 -----------
 
+Remove dependence on cygpath: use internal fn instead.
+Reduce dependence on uname: still used, but if we aren't running on Cygwin guesses Cygwin 1.5 and keeps going.
+
+Remove dependence on Cygwin md5sum: use Python m5 module instead.
+Add check_forbidden_packages -- fn to eliminate packages we shouldn't attempt to update, not actually used yet.
+
+Revision 66
+-----------
+
+
+
 
 
