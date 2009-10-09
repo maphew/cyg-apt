@@ -9,7 +9,7 @@ import sys
 import tarfile
 import re
 import md5
-from pdb import set_trace as st
+from pdb import set_trace as stra
 import shutil
 
 global verbose
@@ -207,8 +207,36 @@ class TestCygApt(unittest.TestCase):
             self.assert_(out_package_name == self.package_name)     
         else:
             self.assert_(False)
-            
-    def testlist(self):
+       
+    def testbarred(self):
+        # Test the safety mechanism which prevents the installation or 
+        # removal of packages which cyg-apt itself depends on        
+        try:
+            utilpack.popen_ext("cyg-apt purge " + self.package_name, self.v)[0]
+            self.patch_cyg_apt_rc(self.cyg_apt_rc_file, "barred",\
+                "testpkg", op="add")
+            installout = utilpack.popen_ext("cyg-apt install " +\
+                self.package_name, self.v)[1]
+            self.assert_("NOT installing" in installout)
+            self.confirm_remove_clean(self.package_name)
+            self.patch_cyg_apt_rc(self.cyg_apt_rc_file, None, None,\
+                None, revert=True)
+            installout = utilpack.popen_ext("cyg-apt install " +\
+                self.package_name, self.v)[0]
+            self.confirm_installed(self.package_name)                
+            self.patch_cyg_apt_rc(self.cyg_apt_rc_file, "barred",\
+                "testpkg", op="add")
+            removeout = utilpack.popen_ext("cyg-apt remove " +\
+                self.package_name, self.v)[1]
+            self.assert_("NOT removing" in removeout)
+            self.confirm_installed(self.package_name)
+        finally:
+            self.patch_cyg_apt_rc(self.cyg_apt_rc_file, None, None,\
+                None, revert=True)
+        
+    
+         
+    def testlist(self):        
         regexes = {}
         regexes[0] = re.compile("([\w\-.]+)")
         regexes[1] = re.compile("([0-9a-z.-]+)")
@@ -454,6 +482,34 @@ class TestCygApt(unittest.TestCase):
         self.assert_fno(self.post_remove_script_done)
     
 
+    def patch_cyg_apt_rc(self, cyg_apt_rc, option, new_val,\
+        op, sep=" ", revert=False):
+        if revert:
+            if os.path.exists(self.cyg_apt_rc_file + ".testbak"):
+                os.rename(self.cyg_apt_rc_file + ".testbak",\
+                    self.cyg_apt_rc_file)
+            return
+        opts = {}
+        rc_options = ['ROOT', 'mirror', 'cache', 'setup_ini', 'distname',\
+            'barred']        
+        rc = file(cyg_apt_rc).readlines()
+        for i in rc:
+            k, v = i.split ('=', 2)
+            opts[k] = eval (v)
+        if op == "replace":
+            opts[option] = new_val
+        elif op == "add":
+            opts[option] += sep + new_val
+        else:
+            self.assert_(False)
+        h = open(self.cyg_apt_rc_file + ".testtmp", "w")
+        for i in rc_options:
+            h.write('%s="%s"\n' % (i, opts[i]))
+        h.close()
+        os.rename(self.cyg_apt_rc_file, self.cyg_apt_rc_file + ".testbak")
+        os.rename(self.cyg_apt_rc_file + ".testtmp", self.cyg_apt_rc_file)
+        
+        
     def do_install_remove_test(self, command_line=""):
         utilpack.popen_ext\
             ("cyg-apt %s remove %s" % (command_line, self.package_name), self.v)

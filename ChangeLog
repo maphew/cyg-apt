@@ -353,7 +353,17 @@ Add check_forbidden_packages -- fn to eliminate packages we shouldn't attempt to
 
 Revision 66
 -----------
+Added a new line to .cyg-apt: barred. Barred is a list of packages cyg-apt is forbidden to install, remove, purge or update. If a package is on this list, cyg-apt now warns the user and skips over it. The list is the set of packages we are dependent on:
+barred="python cygwin base-cygwin coreutils"
 
+Added a reasonably comprehensive test for barred package handling to test-cyg-apt.py. As part of this added a .cyg-apt patching/restoring fn.
+
+Killed old dead code that faked pipes when using a broken version of Python: we don't pipe anything in cyg-apt anymore: fewer external shell tool dependencies. 
+
+Simplied plist helper fn.
+
+Revision 67
+-----------
 
 
 
