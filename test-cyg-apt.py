@@ -57,20 +57,29 @@ class TestCygApt(unittest.TestCase):
         self.ver = "0.0.1-0"
             
         setup_rc_filename  = "/etc/setup/setup.rc"
-        if not (os.path.exists(setup_rc_filename)):
-            print "Can't test with missing /etc/setup/setup.rc"
-            raise "urg"
-        setup_rc = file(setup_rc_filename).readlines()
-        last_cache = None
-        last_mirror = None
-        for i in range(0, (len(setup_rc) -1)):
-            if "last-cache" in setup_rc[i]:
-                last_cache = setup_rc[i+1].strip()
-            if "last-mirror" in setup_rc[i]:
-                last_mirror = setup_rc[i+1].strip()
-        last_cache = os.popen("cygpath -au \"" + last_cache + "\"").read().strip()
-        self.last_cache = last_cache
-        self.last_mirror = last_mirror
+        old_last_mirror = "/etc/setup/last-mirror"
+        old_last_cache = "/etc/setup/last-cache"
+        
+        if (os.path.exists(setup_rc_filename)):
+            setup_rc = file(setup_rc_filename).readlines()
+            last_cache = None
+            last_mirror = None
+            for i in range(0, (len(setup_rc) -1)):
+                if "last-cache" in setup_rc[i]:
+                    last_cache = setup_rc[i+1].strip()
+                if "last-mirror" in setup_rc[i]:
+                    last_mirror = setup_rc[i+1].strip()
+            last_cache = os.popen("cygpath -au \"" + last_cache + "\"").read().strip()
+            self.last_cache = last_cache
+            self.last_mirror = last_mirror
+        elif (os.path.exists(old_last_mirror) and\
+            os.path.exists(old_last_cache)):
+            self.last_mirror = file(old_last_mirror).read().strip()
+            self.last_cache = file(old_last_cache).read().strip()
+            self.last_cache = self.cygpath(self.last_cache)
+        else:
+            print "Can't test without access to last-mirror last-cache, exiting."
+            self.assert_(False)
 
         self.cwd_cyg_apt = ".cyg-apt" 
         self.home_cyg_apt = os.environ['HOME'] + "/.cyg-apt"            
@@ -105,6 +114,17 @@ class TestCygApt(unittest.TestCase):
         self.mirror_esc = urllib.quote(self.opts["mirror"], "").lower()
 
 
+    def cygpath(self, path):
+        path = path.replace("\\", "/")
+        if len(path) == 3:
+            if path[1] == ":":
+                path = "/" + path[0].lower()
+        elif len(path) > 1:        
+            if path[1] == ":":
+                path = "/" + path[0].lower() + path[2:]
+        return path
+    
+    
     def do_testsetup(self):
         setup_out = utilpack.popen_ext("cyg-apt setup", self.v)[0]
         self.assert_fyes(self.home_cyg_apt)
@@ -358,9 +378,11 @@ class TestCygApt(unittest.TestCase):
         
     def testupgrade(self):
         self.new_upgrade_test_setup(True)
-        upgradeout = utilpack.popen_ext("cyg-apt upgrade", self.v)[0]
-        self.assert_fyes(self.version_2_marker)
-        self.new_upgrade_test_cleanup()
+        try:
+            upgradeout = utilpack.popen_ext("cyg-apt upgrade", self.v)[0]
+            self.assert_fyes(self.version_2_marker)
+        finally:
+            self.new_upgrade_test_cleanup()
   
   
     def testcmdline_dist(self):

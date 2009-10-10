@@ -365,6 +365,31 @@ Simplied plist helper fn.
 Revision 67
 -----------
 
+Added more barred packages to generated .cyg-apt: things python is dependentant on.
 
+Added a MinGW compatible verison of rename that papers over the Windows Python behaviour of not overwriting a file with rename.
+
+Changed all the string exceptions to objects: deprecated.
+
+Fixed cyg-apt list: long packagenames used to colide with their version numbers: now there is always a space between them.
+
+Moved from Python md module to haslib: Python 2.6 compatibility to aid the effort to make cyg-apt runnable from outside Cygwin.
+
+Added Cygwin 1.5 compatiblity: mainly affects cyg-apt settup: in the absence of of /etc/settup.rc (1.7 and later Cygwin) use the old settup.exe last-mirror last-cache files, if available.
+
+Changed barred package list to be searched for matching substrings: barred package zlib also bars zlib0.
+
+Changed Cygwin platform detection not to crash on MinGW.
+
+Fixed cyg-apt crashing if run as "just cyg-apt" without a .cyg-apt present: insists on having a .cyg-apt before even giving the help! That's because the help contains feilds from the .cyg-apt: useful but a bit unfriendly for first-time users?
+
+Added Cygwin 1.5 support to the testsuite: mostly using last-mirror last-cache as above. Added cygpath helper to cope with last-cache being given as Windows path.
+
+Hacky removal of ".py" extension if present in scriptname.
+
+Added try:...finally: to testupgrade to ensure cleanup code is run.
+
+Revision 68
+-----------
 
 
