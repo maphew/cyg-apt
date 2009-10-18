@@ -1,0 +1,53 @@
+#summary cyg-apt can't change the packages it itself uses. There is a workaround.
+
+= Introduction =
+
+cyg-apt has some limitations when under Cygwin: it cannot change the packages it depends on. In practice these packages are few in number, mostly present when cyg-apt is installed and not affected by most cyg-apt commands.
+
+= Details =
+The packages cyg-apt cannot change under Cygwin are:
+{{{
+cat .cyg-apt
+...
+barred = "python cygwin base-cygwin coreutils bash zlib libreadline"
+}}}
+
+These packages are termed "barred" packages and you will be warned if you attempt to remove or install them.
+
+To change these packages you must run cyg-apt from outside Cygwin. cyg-apt (the same script) runs from a DOS box if you have Windows Python installed.
+
+||http://www.python.org/download/releases/2.6.2/||
+
+(cyg-apt hasn't been tested under the upcoming Python 3.0. But then again Cygwin is back in the misty 2.5 days :D )
+
+cyg-apt is very slow under DOS -- I don't recommend it for normal use. You need to navigate your DOS box to your Cygwin home directory: cyg-apt can't pick up your .cyg-apt automatically under DOS. The normal commands will then function.
+
+You will need to use the -f option to make cyg-apt work on barred packages: 
+
+==Example: upgrading zlib to a new release:==
+{{{
+start->run->cmd
+C:\Documents and Settings\chrisc> e:
+E:\> cd E:\cygwin_1_7\home\chrisc
+E:\cygwin_1_7\home\chrisc>
+E:\cygwin_1_7\home\chrisc> python cyg-apt --help
+cyg-apt [OPTION]... COMMAND [PACKAGE]...
+Configuration: E:/cygwin_1_7/home/chrisc/.cyg-apt
+    Commands:
+...
+E:\cygwin_1_7\home\chrisc>python cyg-apt install zlib
+cyg-apt: NOT installing zlib: cyg-apt is dependent on this package under Cygwin.
+Use -f to override but proceed with caution.
+
+E:\cygwin_1_7\home\chrisc>python cyg-apt -f install zlib
+E:/home/application_data/cygwin_1_7/http%3a%2f%2fmirror.internode.on.net%2fpub%2
+fcygwin%2f/release-2/zlib/zlib-1.2.3-10.tar.bz2
+b518ce6051d0ca46985d3cd04aa83439  zlib-1.2.3-10.tar.bz2
+b518ce6051d0ca46985d3cd04aa83439  zlib-1.2.3-10.tar.bz2
+installing zlib 1.2.3-10
+}}}
+
+== Warning ==
+The -f flag is a safety catch: I recommend great caution when updating the Cygwin core packages. It is possible that the official setup.exe may carry out undocumented actions when updating the Cygwin core which cyg-apt will not emulate. 
+
+While cyg-apt does work under DOS (I have reinstalled Cygwin Python, for example), Python has subtle faults under Windows so I am concerned some bugs may remain.
