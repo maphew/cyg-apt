@@ -2,7 +2,7 @@
 
 = Introduction =
 
-cyg-apt has some limitations when under Cygwin: it cannot change the packages it depends on. In practice these packages are few in number, mostly present when cyg-apt is installed and not affected by most cyg-apt commands.
+cyg-apt has some limitations under Cygwin: it cannot change the packages it depends on. In practice these packages are few in number, mostly present when cyg-apt is installed and not affected by most cyg-apt commands.
 
 = Details =
 The packages cyg-apt cannot change under Cygwin are:
