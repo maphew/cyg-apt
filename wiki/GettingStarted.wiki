@@ -1,4 +1,4 @@
-_Instructions for getting cyg-apt working._
+#summary How to install cyg-apt
 
   * Install Cygwin: a minimal install is fine -- as long as the Python package is present.
   * Download cyg-apt, unzip the download and place cyg-apt in your path.
