@@ -1,4 +1,4 @@
-_Technical details and operating tips._
+#summary Technical details and operating tips.
 ==Configuration==
 
 cyg-apt is configured by .cyg-apt, created in your home directory. This file can be modified to reconfigure .cyg-apt:
