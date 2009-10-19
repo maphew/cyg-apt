@@ -1,4 +1,4 @@
-#summary cyg-apt can't change the packages it itself uses. There is a workaround. It isn't perfect.
+#summary cyg-apt can't change the packages it itself uses. There is an easy workaround. It isn't perfect.
 
 cyg-apt has some limitations under Cygwin: it cannot change the packages it depends on. In practice these packages are few in number, mostly present when cyg-apt is installed and not affected by most cyg-apt commands.
 
