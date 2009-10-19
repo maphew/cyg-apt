@@ -50,4 +50,4 @@ installing zlib 1.2.3-10
 == Warning ==
 The -f flag is a safety catch: I recommend great caution when updating the Cygwin core packages. It is possible that the official setup.exe may carry out undocumented actions when updating the Cygwin core which cyg-apt will not emulate. 
 
-While cyg-apt does work under DOS (I have reinstalled Cygwin Python, for example), Python has subtle faults under Windows so I am concerned some bugs may remain.
+While cyg-apt does work under DOS (I have reinstalled Cygwin Python, for example), Python has some subtle faults under Windows, so I am concerned some bugs may remain.
