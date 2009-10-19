@@ -1,0 +1,43 @@
+_Instructions for getting cyg-apt working._
+
+Installing cyg-apt requires a Cygwin install with Python: download the zipped script, unzip and place it in your path, then run
+{{{
+$cyg-apt setup
+}}}
+
+==Details==
+
+  * It is expected that you have already performed a base Cygwin install. cyg-apt is intended to help manage packages in an existing installation. 
+
+  * Additionally you will need to have Cygwin Python. If you are not sure whether you have Python, at a Cygwin prompt:
+{{{
+$ python --help
+usage: python [option] ... [-c cmd | -m mod | file | -] [arg] ...
+...
+}}}
+  * If you don't have Python, launch your Cygwin installer: setup.exe
+    o At the Cygwin Setup - Select Packages 
+    o Select the python package under the interpreters section.
+    o Ensure other selections are correct and click "Next" to install. 
+
+  * Download cyg-apt from this site.
+  * Unzip the download with your favourite unzipper: from Cygwin
+{{{
+$ tar -xf cyg-apt-1.0.0-1.tar.bz2
+}}}
+The unpacked cyg-apt-1.0.0-1 directory contains the script cyg-apt. Transfer this script to your path. Typically this means moving the script to /usr/bin or your own private $HOME/bin directory if you have one in your path.
+{{{
+$ cd cyg-apt-1.0.0-1
+$ cp cyg-apt /usr/bin
+}}}
+* Run setup 
+{{{
+$ cyg-apt setup
+cyg-apt: creating /home/chrisc/.cyg-apt.
+}}}
+cyg-apt will now be ready to use: Example operations:
+{{{
+$ cyg-apt --help
+$ cyg-apt install nano
+$ cyg-apt list
+}}}
