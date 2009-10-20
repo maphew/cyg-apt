@@ -1,6 +1,6 @@
-#summary cyg-apt can't change the packages it itself uses. There is a workaround. It isn't perfect.
+#summary cyg-apt can't change the packages it itself uses while running from Cygwin. There is a workaround.
 
-cyg-apt has some limitations under Cygwin: it cannot change the packages it depends on. In practice these packages are few in number, mostly present when cyg-apt is installed and not affected by most cyg-apt commands.
+In practice these packages are few in number, mostly present when cyg-apt is installed and not affected by most cyg-apt commands. The workaround is to run cyg-apt from a Windows cmd shell.
 
 = Details =
 The packages cyg-apt cannot change _under Cygwin_ are:
