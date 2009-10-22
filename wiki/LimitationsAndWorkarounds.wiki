@@ -1,6 +1,12 @@
-#summary cyg-apt can't change the packages it itself uses while running from Cygwin. There is a workaround.
+#summary cyg-apt can't change the packages it itself uses while running from Cygwin. There are workarounds.
 
-In practice these packages are few in number, mostly present when cyg-apt is installed and not affected by most cyg-apt commands. The workaround is to run cyg-apt from a Windows cmd shell.
+In practice these packages are few in number, mostly present when cyg-apt is installed and not affected by most cyg-apt commands. There are workarounds:
+  # Run setup.exe normally, select the package and possibly watch while it does things you didn't ask for without warning :) 
+  # Run setup.exe on the command line: recent versions have some command line functionality:
+{{{
+setup-1.7.exe -q -P python
+}}}
+  # run cyg-apt from a Windows cmd shell as detailed below.
 
 = Details =
 The packages cyg-apt cannot change _under Cygwin_ are:
