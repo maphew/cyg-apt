@@ -8,6 +8,10 @@ setup-1.7.exe -q -P python
 }}}
   # run cyg-apt from a Windows cmd shell as detailed below.
 
+== Services -- running processes ==
+
+If a package is associated with a running process, the process will not be changed when the package is changed. For this reason it is best to stop all services and processes associated with a package before removing or upgrading it.
+
 = Details =
 The packages cyg-apt cannot change _under Cygwin_ are:
 {{{
